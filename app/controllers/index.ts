@@ -5,15 +5,9 @@ import { tracked } from '@glimmer/tracking';
 import type RouterService from '@ember/routing/router-service';
 import { service } from '@ember/service';
 
-export enum LocalGovernmentType {
-  Municipality = 'gemeentes',
-  Province = 'provincies',
-}
-
 export interface LocalGovernmentOption {
   id?: string;
   label: string;
-  type?: LocalGovernmentType;
 }
 
 export default class IndexController extends Controller {
