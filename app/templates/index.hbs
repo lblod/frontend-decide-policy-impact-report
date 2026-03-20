@@ -1,3 +1,4 @@
+{{page-title "DECIDE | Policy Impact Report"}}
 <AuBodyContainer>
   <section
     class="au-u-flex au-u-flex--end@small au-u-flex--wrap au-u-height-full au-u-flex--column-reverse@small"
@@ -14,39 +15,37 @@
     <article
       class="au-u-background-gray-100 au-u-1-1 au-u-1-2@small au-u-flex au-u-flex--column au-u-flex--center au-u-flex--vertical-center"
     >
-      <AuContent
-        class="au-u-flex au-u-flex--column au-u-flex--center au-u-padding au-u-max-width-small au-u-height-full"
+      <div
+        class="au-u-flex au-u-flex--column au-u-flex--center au-u-padding-huge au-u-max-width-small au-u-height-full au-o-flow au-o-flow--small"
       >
         <AuHeading @level="1" @skin="2">Get an insight into the impact of local
           authorities' decisions on the Sustainable Development Goals.</AuHeading>
 
-        <p>To start, choose the local authority.</p>
-
+        <AuHeading class="au-u-regular" @level="4" @skin="4">To start, choose
+          the local authority.</AuHeading>
         <div class="au-o-flow au-o-flow--small">
-          <PowerSelectMultiple
-            @searchEnabled={{true}}
-            @id="municipality"
-            @label="Local authority"
-            @options={{this.governmentList.options}}
-            @noMatchesMessage="No local authorities found"
-            @selected={{this.governmentList.selected}}
-            @onChange={{this.handleSelectLocalGovernmentsChange}}
+          <BasicDropdownWormhole />
+          <PowerSelect
+            @options={{this.localAuthorityOptions}}
+            @selected={{this.selectedLocalAuthority}}
+            @onChange={{this.changeSelectLocalAuthority}}
+            @searchEnabled={{false}}
             @searchField="label"
+            @noMatchesMessage="No local authorities found"
             @placeholder="Local authority"
             as |option|
           >
             {{option.label}}
-          </PowerSelectMultiple>
+          </PowerSelect>
 
           <AuButton
             @loading={{this.loading}}
             @loadingMessage="Laden..."
             @width="block"
-            {{on "click" this.handleMunicipalitySelect}}
+            {{on "click" this.submitLocalAuthority}}
           >View</AuButton>
         </div>
-
-      </AuContent>
+      </div>
       <p class="au-u-text-center au-u-margin-bottom">
         <AuLink @route="help">More information about this project</AuLink>
       </p>

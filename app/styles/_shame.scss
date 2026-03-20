@@ -1,0 +1,16 @@
+.ember-power-select-options[role="listbox"] {
+  margin-left: unset !important;
+  li {
+    margin-top: unset !important;
+  }
+  .ember-power-select-option {
+    padding: 0.6rem 0.6rem 0.6rem 2.4rem !important;
+  }
+}
+.ember-power-select-status-icon {
+  position: absolute !important;
+  height: 1.2rem !important;
+  width: 1.2rem !important;
+  transform: rotate(0deg) !important;
+  border-style: none !important;
+}

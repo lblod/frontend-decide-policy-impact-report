@@ -5,14 +5,33 @@ import { tracked } from '@glimmer/tracking';
 import type RouterService from '@ember/routing/router-service';
 import { service } from '@ember/service';
 
-export default class HomeController extends Controller {
+export enum LocalGovernmentType {
+  Municipality = 'gemeentes',
+  Province = 'provincies',
+}
+
+export interface LocalGovernmentOption {
+  id?: string;
+  label: string;
+  type?: LocalGovernmentType;
+}
+
+export default class IndexController extends Controller {
   @service declare router: RouterService;
-  @tracked governmentList = {
-    selected: [] as string[],
-  };
-  @action handleSelectLocalGovernmentsChange(
-    selectedLocalGovernments: string[],
-  ) {
-    this.governmentList.selected = selectedLocalGovernments;
+  @tracked selectedLocalAuthority: LocalGovernmentOption | null = null;
+
+  localAuthorityOptions: LocalGovernmentOption[] = [
+    { label: 'Ghent, Belgium' },
+    { label: 'Freiburg, Germany' },
+    { label: 'Bamberg, Germany' },
+  ];
+
+  @action
+  changeSelectLocalAuthority(selected: LocalGovernmentOption) {
+    this.selectedLocalAuthority = selected;
+  }
+
+  @action submitLocalAuthority() {
+    // transition to the dashboard route
   }
 }
