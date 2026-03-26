@@ -3,10 +3,11 @@
     <AuLabel for="sdgs">
       Sustainable Development Goals
     </AuLabel>
-
-    <AuButton @skin="link" {{on "click" @onDeselect}}>
-      Deselect all
-    </AuButton>
+    {{#if @chartData.selectedSDGs.length}}
+      <AuButton @skin="link" {{on "click" @onDeselect}}>
+        Deselect all
+      </AuButton>
+    {{/if}}
   </div>
 
   <AuCheckboxGroup
