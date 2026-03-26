@@ -1,0 +1,35 @@
+{{page-title "DECIDE | Policy Impact Report"}}
+
+<AuBodyContainer>
+  <AuMainContainer as |m|>
+    <m.sidebar
+      @size="large"
+      @scroll={{true}}
+      class="sidebar au-u-background-gray-100"
+    >
+      <Report::Sidebar
+        @localAuthorityData={{this.localAuthorityData}}
+        @chartData={{this.chartData}}
+        @onChangeLocalAuthority={{this.changeSelectLocalAuthority}}
+        @onChangeSdgs={{this.changeSdgs}}
+        @onDeselectSdgs={{this.deselectSdgs}}
+      />
+    </m.sidebar>
+    <m.content @scroll={{true}}>
+      <div
+        class="au-d-component-block au-d-component-block--overflow au-u-padding"
+      >
+        <Report::Header
+          @localAuthority={{this.localAuthorityData.selectedLocalAuthority}}
+        />
+        <section class="au-u-flex au-u-flex--column au-u-flex--spaced-small">
+          <Report::Stats @chartData={{this.chartData}} />
+          <Report::TopLists />
+          <Report::Charts />
+        </section>
+      </div>
+    </m.content>
+  </AuMainContainer>
+
+  {{outlet}}
+</AuBodyContainer>

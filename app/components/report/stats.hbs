@@ -1,0 +1,21 @@
+<article class="au-u-flex au-u-flex--spaced-small au-u-flex--wrap@small">
+
+  <Report::StatCard
+    @title="Decisions about SDGs"
+    @value="80%"
+    @description="88/110 decisions are linked to an SDG"
+  />
+
+  <Report::StatCard
+    @title="Decisions with positive impact"
+    @value={{concat @chartData.stats.positiveImpactPercentage "%"}}
+    @description="{{@chartData.stats.totalPositiveDecisions}}/{{@chartData.stats.totalDecisions}} decisions have a positive impact"
+  />
+
+  <Report::StatCard
+    @title="Decisions with negative impact"
+    @value={{concat @chartData.stats.negativeImpactPercentage "%"}}
+    @description="{{@chartData.stats.totalNegativeDecisions}}/{{@chartData.stats.totalDecisions}} decisions have a negative impact"
+  />
+
+</article>

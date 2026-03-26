@@ -1,0 +1,27 @@
+<div class="au-o-flow au-o-flow--small">
+  <div class="au-u-flex au-u-flex--between au-u-1-1">
+    <AuLabel for="sdgs">
+      Sustainable Development Goals
+    </AuLabel>
+
+    <AuButton @skin="link" {{on "click" @onDeselect}}>
+      Deselect all
+    </AuButton>
+  </div>
+
+  <AuCheckboxGroup
+    @name="sdgs"
+    @selected={{@chartData.selectedSDGs}}
+    @onChange={{@onChange}}
+    as |Group|
+  >
+    {{#each @chartData.sdgs as |sdg|}}
+      <Group.Checkbox @value={{sdg.id}}>
+        <div class="sdg-checkbox">
+          <span class="sdg-label">{{sdg.name}}</span>
+          <span class="checkbox-tag" style={{this.colorStyle sdg}}></span>
+        </div>
+      </Group.Checkbox>
+    {{/each}}
+  </AuCheckboxGroup>
+</div>

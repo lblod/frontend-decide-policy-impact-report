@@ -1,0 +1,24 @@
+<div class="au-d-component-block au-u-padding">
+
+  <AuHeading @level="4" @skin="4" class="au-u-margin-bottom">
+    AI generated report
+  </AuHeading>
+
+  {{! Local authority }}
+  <div class="au-o-flow au-o-flow--small">
+    <AuLabel>Local authorities</AuLabel>
+
+    <SelectLocalAuthority
+      @localAuthorityData={{@localAuthorityData}}
+      @onChange={{@onChangeLocalAuthority}}
+    />
+  </div>
+
+  {{! SDG filters }}
+  <Report::SdgFilter
+    @chartData={{@chartData}}
+    @onChange={{@onChangeSdgs}}
+    @onDeselect={{@onDeselectSdgs}}
+  />
+
+</div>

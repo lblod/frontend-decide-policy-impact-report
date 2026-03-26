@@ -1,0 +1,37 @@
+{{! template-lint-disable no-at-ember-render-modifiers }}
+{{! template-lint-disable style-concatenation }}
+<div class="au-u-flex au-u-flex--between">
+  <AuHeading @level="5" @skin="5" class="au-u-margin-bottom">
+    Decision impact over time</AuHeading>
+  <div class="set-chart-type-buttons">
+    <div class="">
+      <BasicDropdownWormhole />
+      <PowerSelect
+        id="select-line"
+        @options={{this.lineOptions}}
+        @selected={{this.selectedLine}}
+        @onChange={{this.changeLine}}
+        @placeholder="Show all"
+        as |option|
+      >
+        <span
+          class="au-u-block au-u-flex--vertical-center au-u-flex--spaced-small"
+        >
+          {{option.name}}
+          {{#each option.colors as |color|}}
+            <span
+              style={{this.colorStyle color}}
+              class="checkbox-tag au-u-block"
+            ></span>
+          {{/each}}
+        </span>
+      </PowerSelect>
+    </div>
+  </div>
+</div>
+
+<div
+  {{did-insert this.renderChart}}
+  {{did-update this.updateChart this.chartData.selectedSDGs}}
+  class="chart"
+></div>
