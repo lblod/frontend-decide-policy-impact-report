@@ -1,0 +1,23 @@
+<article class="au-u-flex au-u-flex--spaced-small au-u-flex--wrap@small">
+
+  <div class="card au-u-1-2@small au-u-1-1">
+    <Charts::EchartsDecisionsPerSdgChart />
+  </div>
+
+  <div class="card au-u-1-2@small au-u-1-1">
+    <AuHeading @level="5" @skin="5">
+      Impact
+    </AuHeading>
+    <p class="au-u-h-functional au-u-margin-bottom-small au-u-muted">
+      Using decisions which have been labelled with positive/negative impact
+    </p>
+    <Charts::EchartsImpactChart />
+  </div>
+
+</article>
+
+<article class="au-u-flex au-u-flex--spaced-small">
+  <div class="card au-u-1-1">
+    <Charts::EchartsDecisionImpactOverTimeChart />
+  </div>
+</article>

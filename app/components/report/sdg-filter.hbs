@@ -1,0 +1,25 @@
+<div class="au-o-flow au-o-flow--small au-u-margin-top">
+
+  {{! Mobile }}
+  <AuAccordion
+    class="au-u-hidden-from@medium au-u-padding-bottom-none"
+    @buttonLabel="More filters"
+    @isOpenInitially={{false}}
+  >
+    <Report::SdgFilter::Content
+      @chartData={{@chartData}}
+      @onChange={{@onChange}}
+      @onDeselect={{@onDeselect}}
+    />
+  </AuAccordion>
+
+  {{! Desktop }}
+  <div class="au-u-visible-from@medium">
+    <Report::SdgFilter::Content
+      @chartData={{@chartData}}
+      @onChange={{@onChange}}
+      @onDeselect={{@onDeselect}}
+    />
+  </div>
+
+</div>

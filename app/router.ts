@@ -8,6 +8,7 @@ export default class Router extends EmberRouter {
 
 Router.map(function () {
   this.route('index', { path: '/' });
+  this.route('report', { path: '/report' });
 
   this.route('help');
   this.route('route-not-found', {

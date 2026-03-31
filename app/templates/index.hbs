@@ -24,21 +24,13 @@
         <AuHeading class="au-u-regular" @level="4" @skin="4">To start, choose
           the local authority.</AuHeading>
         <div class="au-o-flow au-o-flow--small">
-          <BasicDropdownWormhole />
-          <PowerSelect
-            @options={{this.localAuthorityOptions}}
-            @selected={{this.selectedLocalAuthority}}
+          <SelectLocalAuthority
+            @localAuthorityData={{this.localAuthorityData}}
             @onChange={{this.changeSelectLocalAuthority}}
-            @searchEnabled={{false}}
-            @searchField="label"
-            @noMatchesMessage="No local authorities found"
-            @placeholder="Local authority"
-            as |option|
-          >
-            {{option.label}}
-          </PowerSelect>
+          />
 
           <AuButton
+            @disabled={{not this.localAuthorityData.selectedLocalAuthority}}
             @loading={{this.loading}}
             @loadingMessage="Laden..."
             @width="block"

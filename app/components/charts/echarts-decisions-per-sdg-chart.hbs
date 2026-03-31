@@ -1,0 +1,58 @@
+<section>
+  <div class="au-u-flex au-u-flex--between">
+    <AuHeading @level="5" @skin="5" class="au-u-margin-bottom">
+      Decisions split per SDG</AuHeading>
+    <div class="set-chart-type-buttons">
+      <button
+        type="button"
+        title="Change to a bar chart"
+        {{on "click" this.setChartTypeToBar}}
+        class={{this.barChartButtonClass}}
+      >
+        <svg
+          width="13"
+          height="17"
+          viewBox="0 0 13 17"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M0 3.8147e-06V16.4743H2.05929V3.8147e-06H0ZM5.14821 16.4743V4.6334H7.2075V16.4743H5.14821ZM10.2964 16.4743V2.3167H12.3557V16.4743H10.2964Z"
+            fill="#8695A8"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        title="Change to a doughnut chart"
+        {{on "click" this.setChartTypeToDoughnut}}
+        class={{this.doughnutChartButtonClass}}
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        ><path
+            d="M12,2 C17.5228,2 22,6.47715 22,12 C22,12.127615 21.9976095,12.2546717 21.9928708,12.3811278 L22,12 C22,12.1499061 21.9967014,12.2990418 21.9901729,12.4473386 C21.9857992,12.54651 21.9800394,12.6445144 21.9728783,12.7421294 C21.9711498,12.7657132 21.969286,12.7899379 21.9673361,12.8141382 L21.9657242,12.8338998 C21.9465965,13.0655906 21.9195701,13.2950417 21.884915,13.5219831 C21.8804304,13.5513542 21.8757907,13.5808521 21.8710223,13.610307 L21.8647014,13.6488726 C21.8466783,13.757503 21.8269042,13.8655419 21.8054092,13.9729593 C21.8007826,13.996079 21.7960855,14.0191257 21.7913093,14.0421435 C21.7701653,14.1440527 21.747419,14.2456075 21.7231411,14.346566 C21.7192243,14.3628487 21.7154314,14.3784498 21.711602,14.3940365 C21.6833741,14.5089624 21.6529914,14.6236983 21.6206404,14.737606 C21.6133236,14.7633681 21.6059077,14.7890828 21.5983915,14.8147547 C20.3825655,18.9672635 16.5454136,22 12,22 C6.47715,22 2,17.5228 2,12 C2,6.47715 6.47715,2 12,2 Z M12,4 C7.58172,4 4,7.58172 4,12 C4,16.4183 7.58172,20 12,20 C15.4720042,20 18.4273923,17.7882334 19.5340752,14.6967894 L12,13 L12,4 L12,4 Z"
+          /></svg>
+      </button>
+    </div>
+  </div>
+  <div>
+    {{#unless this.loading}}
+      {{! template-lint-disable no-at-ember-render-modifiers }}
+      <div
+        {{did-insert this.renderChart}}
+        {{did-update
+          this.updateChart
+          this.chartData.selectedSDGs
+          this.chartType
+        }}
+        class="chart"
+      ></div>
+    {{/unless}}
+  </div>
+</section>
