@@ -202,7 +202,6 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
   renderChart = (element: HTMLElement) => {
     this.chart = echarts.init(element, null, {
       renderer: 'svg',
-      useDirtyRect: false,
     });
 
     this.chart.setOption(this.chartOptions);

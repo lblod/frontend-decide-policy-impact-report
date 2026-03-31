@@ -85,7 +85,7 @@ export default class EchartsDecisionsPerSdgChart extends Component {
       tooltip: {
         trigger: 'item',
         triggerOn: 'mousemove|click',
-        confine: true,
+        confine: false,
         enterable: true,
         position: isBar ? 'top' : 'right',
         extraCssText: 'pointer-events: auto!important',
@@ -102,7 +102,7 @@ export default class EchartsDecisionsPerSdgChart extends Component {
             <div>${echarts.format.encodeHTML(allPercentage.toString())}% of all decisions</div>
           `;
         },
-        hideDelay: 500,
+        hideDelay: 1000,
       },
 
       grid: {
