@@ -2,8 +2,8 @@
 
   <Report::StatCard
     @title="Decisions about SDGs"
-    @value="80%"
-    @description="88/110 decisions are linked to an SDG"
+    @value={{concat @chartData.stats.totalSdgLinkedPercentage "%"}}
+    @description="{{@chartData.stats.totalSdgLinked}}/{{@chartData.stats.totalSdgDecisions}} decisions are linked to an SDG"
   />
 
   <Report::StatCard

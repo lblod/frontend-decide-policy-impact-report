@@ -14,12 +14,18 @@ export default class ReportRoute extends Route {
 
   queryParams = {
     localAuthority: { refreshModel: true },
-    sdg: { refreshModel: true },
+    sdg: { refreshModel: false },
   };
 
-  beforeModel(transition: Transition): void {
+  async beforeModel(transition: Transition): Promise<void> {
+    await this.chartData.loadSdgDataTask.perform();
+    await this.chartData.fetchImpactDataTask.perform();
+    await this.chartData.fetchTotalDecisionsCountTask.perform();
+    await this.chartData.fetchLinkedDecisionsCountTask.perform();
+
     const localAuthorityId = transition.to?.queryParams?.['localAuthority'];
     const sdgs = transition.to?.queryParams?.['sdg'];
+
     if (sdgs) {
       const sdgArray = sdgs.split(',');
       this.chartData.setSDGFilter(sdgArray);

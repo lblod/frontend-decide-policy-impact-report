@@ -4,28 +4,40 @@
   <div class="card au-u-1-3@small au-u-1-1">
     <AuHeading @level="5" @skin="5" class="au-u-margin-bottom-small">
       Top three decisions about SDGs</AuHeading>
-    <ol>
-      <li><AuLink>Climate action</AuLink></li>
-      <li><AuLink>Gender equality</AuLink></li>
-      <li><AuLink>Sustainable cities and communities</AuLink></li>
-    </ol>
+    {{#if @chartData.topSDGsOverall.length}}
+      <ol>
+        {{#each @chartData.topSDGsOverall as |sdg|}}
+          <li><AuLink>{{sdg.name}}</AuLink></li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <p>No SDG data available</p>
+    {{/if}}
   </div>
   <div class="card au-u-1-3@small au-u-1-1">
     <AuHeading @level="5" @skin="5" class="au-u-margin-bottom-small">
       Top three with positive impact</AuHeading>
-    <ol>
-      <li><AuLink>Climate action</AuLink></li>
-      <li><AuLink>Gender equality</AuLink></li>
-      <li><AuLink>Sustainable cities and communities</AuLink></li>
-    </ol>
+    {{#if @chartData.topSDGsPositive.length}}
+      <ol>
+        {{#each @chartData.topSDGsPositive as |sdg|}}
+          <li><AuLink>{{sdg.name}}</AuLink></li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <p>No SDG data available</p>
+    {{/if}}
   </div>
   <div class="card au-u-1-3@small au-u-1-1">
     <AuHeading @level="5" @skin="5" class="au-u-margin-bottom-small">
       Top three with negative impact</AuHeading>
-    <ol>
-      <li><AuLink>Climate action</AuLink></li>
-      <li><AuLink>Gender equality</AuLink></li>
-      <li><AuLink>Sustainable cities and communities</AuLink></li>
-    </ol>
+    {{#if @chartData.topSDGsNegative.length}}
+      <ol>
+        {{#each @chartData.topSDGsNegative as |sdg|}}
+          <li><AuLink>{{sdg.name}}</AuLink></li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <p>No SDG data available</p>
+    {{/if}}
   </div>
 </article>
