@@ -149,7 +149,6 @@ export default class ChartDataService extends Service {
     const response = await fetch(`/policy-impact-report/impact-by-sdg`);
     const data = await response.json();
     this.applyImpactData(data);
-    console.log(this.privateSDGData);
   });
 
   fetchTotalDecisionsCountTask = task(async () => {
