@@ -6,6 +6,7 @@ import type Concept from 'frontend-decide-policy-impact-report/models/sdg-concep
 
 export type SDG = {
   id: string;
+  uuid?: string;
   name?: string;
   color: string;
   rgbaColor: string;
@@ -15,7 +16,8 @@ export type SDG = {
 
 export type ImpactType =
   | 'http://mu.semte.ch/vocabularies/ext/impact/positive'
-  | 'http://mu.semte.ch/vocabularies/ext/impact/negative';
+  | 'http://mu.semte.ch/vocabularies/ext/impact/negative'
+  | 'http://mu.semte.ch/vocabularies/ext/impact/unknown';
 
 export type ImpactApiRow = {
   sdg: string;
@@ -139,6 +141,7 @@ export default class ChartDataService extends Service {
       ...sdg,
       name: `${sdgsConceptsArray[index]?.altLabel ?? ''}`,
       notation: sdgsConceptsArray[index]?.notation,
+      uuid: sdgsConceptsArray[index]?.uuid,
     }));
   });
 
@@ -146,6 +149,7 @@ export default class ChartDataService extends Service {
     const response = await fetch(`/policy-impact-report/impact-by-sdg`);
     const data = await response.json();
     this.applyImpactData(data);
+    console.log(this.privateSDGData);
   });
 
   fetchTotalDecisionsCountTask = task(async () => {
@@ -175,12 +179,15 @@ export default class ChartDataService extends Service {
     const map = this.transformImpactData(data);
 
     this.privateSDGData = this.sdgs.map((sdg) => {
-      const impact = map.get(sdg.id) ?? { positive: 0, negative: 0 };
+      const impact = sdg.uuid
+        ? (map.get(sdg.uuid) ?? { positive: 0, negative: 0, unknown: 0 })
+        : { positive: 0, negative: 0, unknown: 0 };
 
       return {
         ...sdg,
         positiveDecisions: impact.positive,
         negativeDecisions: -impact.negative,
+        unknownDecisions: impact.unknown,
       };
     });
 
@@ -188,21 +195,29 @@ export default class ChartDataService extends Service {
   }
 
   transformImpactData(data: ImpactApiRow[]) {
-    const map = new Map<string, { positive: number; negative: number }>();
+    const map = new Map<
+      string,
+      { positive: number; negative: number; unknown: number }
+    >();
 
     for (const row of data) {
-      const id = new RegExp(/SDG-(\d+)/).exec(row.sdg)?.[1]?.padStart(2, '0');
-      if (!id) continue;
+      const uuid = this.extractUuid(row.sdg);
+      if (!uuid) continue;
 
-      const entry = map.get(id) ?? { positive: 0, negative: 0 };
+      const entry = map.get(uuid) ?? { positive: 0, negative: 0, unknown: 0 };
 
       if (row.impact.endsWith('/positive')) entry.positive += row.count;
       if (row.impact.endsWith('/negative')) entry.negative += row.count;
+      if (row.impact.endsWith('/unknown')) entry.unknown += row.count;
 
-      map.set(id, entry);
+      map.set(uuid, entry);
     }
 
     return map;
+  }
+
+  extractUuid(uri: string): string {
+    return uri.split('/').pop() ?? '';
   }
 
   get filteredSDGData() {
