@@ -2,7 +2,7 @@ import type Store from '@ember-data/store';
 import Service, { service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { task } from 'ember-concurrency';
-import type Concept from 'frontend-decide-policy-impact-report/models/sdg-concept';
+import type Concept from 'frontend-decide-policy-impact-report/models/concept';
 
 export type SDG = {
   id: string;
@@ -132,7 +132,7 @@ export default class ChartDataService extends Service {
   loadSdgDataTask = task(async () => {
     const schemeId = 'http://data.lblod.gift/id/conceptscheme/sdg-simple';
 
-    const sdgsConceptsArray = (await this.store.query('sdg-concept', {
+    const sdgsConceptsArray = (await this.store.query('concept', {
       'filter[concept-scheme][:uri:]': schemeId,
       sort: 'notation',
     })) as unknown as Concept[];
@@ -141,7 +141,7 @@ export default class ChartDataService extends Service {
       ...sdg,
       name: `${sdgsConceptsArray[index]?.altLabel ?? ''}`,
       notation: sdgsConceptsArray[index]?.notation,
-      uuid: sdgsConceptsArray[index]?.uuid,
+      uuid: sdgsConceptsArray[index]?.id,
     }));
   });
 

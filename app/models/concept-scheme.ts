@@ -1,13 +1,13 @@
 import Model, { attr, hasMany } from '@ember-data/model';
-import type Concept from './sdg-concept';
+import type Concept from './concept';
 
 export default class ConceptScheme extends Model {
   @attr('string') uuid!: string;
   @attr('string') prefLabel!: string;
   @attr('string') definition!: string;
 
-  @hasMany('concept', { inverse: 'SdgConceptScheme', async: true })
-  declare SdgConcepts: Concept[];
+  @hasMany('concept', { inverse: 'ConceptScheme', async: true })
+  declare Concepts: Concept[];
 }
 
 declare module 'ember-data/types/registries/model' {
