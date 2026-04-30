@@ -1,7 +1,19 @@
-{{page-title "FrontendDecidePolicyImpactReport"}}
-
-{{! The following component displays Ember's default welcome message. }}
-<WelcomePage />
-{{! Feel free to remove this! }}
-
-{{outlet}}
+{{page-title "DECIDE | Policy Impact Report"}}
+<AuApp>
+  <AuMainHeader
+    @brandLink="https://www.vlaanderen.be/nl"
+    @homeRoute="index"
+    @appTitle={{this.appTitle}}
+  >
+    <li class="au-c-list-horizontal__item">
+    </li>
+  </AuMainHeader>
+  <AuMainContainer as |main|>
+    <main.content>
+      <AuBodyContainer>
+        {{outlet}}
+      </AuBodyContainer>
+    </main.content>
+  </AuMainContainer>
+</AuApp>
+<AuToaster />

@@ -1,0 +1,46 @@
+{{page-title "DECIDE | Policy Impact Report"}}
+<AuBodyContainer>
+  <section
+    class="au-u-flex au-u-flex--end@small au-u-flex--wrap au-u-height-full au-u-flex--column-reverse@small"
+  >
+    <article
+      class="au-u-1-1 au-u-1-2@small au-u-flex au-u-flex--center au-u-padding"
+    >
+      <img
+        src="/assets/images/homepage-visual.svg"
+        class="au-u-max-width-small au-u-1-1"
+        alt="Homepage visual"
+      />
+    </article>
+    <article
+      class="au-u-background-gray-100 au-u-1-1 au-u-1-2@small au-u-flex au-u-flex--column au-u-flex--center au-u-flex--vertical-center"
+    >
+      <div
+        class="au-u-flex au-u-flex--column au-u-flex--center au-u-padding-huge au-u-max-width-small au-u-height-full au-o-flow au-o-flow--small"
+      >
+        <AuHeading @level="1" @skin="2">Get an insight into the impact of local
+          authorities' decisions on the Sustainable Development Goals.</AuHeading>
+
+        <AuHeading class="au-u-regular" @level="4" @skin="4">To start, choose
+          the local authority.</AuHeading>
+        <div class="au-o-flow au-o-flow--small">
+          <SelectLocalAuthority
+            @localAuthorityData={{this.localAuthorityData}}
+            @onChange={{this.changeSelectLocalAuthority}}
+          />
+
+          <AuButton
+            @disabled={{not this.localAuthorityData.selectedLocalAuthority}}
+            @loading={{this.loading}}
+            @loadingMessage="Laden..."
+            @width="block"
+            {{on "click" this.submitLocalAuthority}}
+          >View</AuButton>
+        </div>
+      </div>
+      <p class="au-u-text-center au-u-margin-bottom">
+        <AuLink @route="help">More information about this project</AuLink>
+      </p>
+    </article>
+  </section>
+</AuBodyContainer>

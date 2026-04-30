@@ -1,0 +1,100 @@
+.ember-power-select-options[role="listbox"] {
+  margin-left: unset !important;
+
+  li {
+    margin-top: unset !important;
+  }
+
+  .ember-power-select-option {
+    padding: 0.6rem 0.6rem 0.6rem 2.4rem !important;
+  }
+}
+
+.ember-power-select-status-icon {
+  position: absolute !important;
+  height: 1.2rem !important;
+  width: 1.2rem !important;
+  transform: rotate(0deg) !important;
+  border-style: none !important;
+}
+
+.card {
+  border-radius: 6px;
+  border: 2px solid #cfd5dd;
+  padding: 1.2rem;
+
+  ol {
+    list-style-type: decimal !important;
+    color: #004ab2;
+    margin-left: 2rem;
+  }
+
+  .percentage {
+    font-weight: 500;
+    font-size: 64px;
+    line-height: 47px;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+    color: #004ab2;
+  }
+
+  .chart {
+    height: 400px;
+  }
+
+  .set-chart-type-buttons {
+    display: flex;
+    justify-content: end;
+    gap: 5px;
+  }
+
+  .set-chart-type-buttons button {
+    background-color: #f7f9fcff;
+    border: 1px solid #edeff3ff;
+    color: #8695a8ff;
+    padding: 3px;
+    font-size: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+  }
+
+  .set-chart-type-buttons button:hover,
+  .set-chart-type-buttons button.active {
+    background-color: #e4ebf5;
+    border: 1px solid #05cf;
+    color: #05cf;
+    transition: 0.2s ease-in-out;
+
+    path,
+    img {
+      fill: #05cf;
+      color: #05cf;
+    }
+  }
+}
+
+.checkbox-tag {
+  width: 11px;
+  height: 7.5px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.sidebar {
+  @media (width <= 63.9275em) {
+    max-width: 100% !important;
+  }
+
+  min-width: 350px;
+  overflow-y: auto;
+}
+
+#select-line {
+  min-width: 230px;
+}

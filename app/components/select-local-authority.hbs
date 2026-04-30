@@ -1,0 +1,14 @@
+<BasicDropdownWormhole />
+<PowerSelect
+  id="local-authority"
+  @options={{@localAuthorityData.localAuthorityOptions}}
+  @selected={{@localAuthorityData.selectedLocalAuthority}}
+  @onChange={{@onChange}}
+  @searchEnabled={{false}}
+  @searchField="label"
+  @noMatchesMessage="No local authorities found"
+  @placeholder="Local authority"
+  as |option|
+>
+  {{option.label}}
+</PowerSelect>
