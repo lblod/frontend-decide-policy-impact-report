@@ -13,7 +13,7 @@
   "scripts": {
     "build": "ember build --environment=production",
     "lint": "concurrently \"npm:lint:*(!fix)\" --names \"lint:\"",
-    "lint:css": "stylelint \"**/*.css\"",
+    "lint:css": "stylelint \"**/*.{css,scss}\"",
     "lint:css:fix": "concurrently \"npm:lint:css -- --fix\"",
     "lint:fix": "concurrently \"npm:lint:*:fix\" --names \"fix:\"",
     "lint:hbs": "ember-template-lint .",
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@appuniversum/ember-appuniversum": "^3.18.0",
     "@ember/optional-features": "^3.0.0",
+    "@ember/render-modifiers": "^3.0.0",
     "@ember/string": "^4.0.1",
     "@ember/test-helpers": "^5.4.1",
     "@glimmer/component": "^2.0.0",
@@ -64,6 +65,7 @@
     "@typescript-eslint/parser": "^8.57.1",
     "broccoli-asset-rev": "^3.0.0",
     "concurrently": "^9.2.1",
+    "echarts": "^6.0.0",
     "ember-auto-import": "^2.12.1",
     "ember-basic-dropdown": "^8.11.0",
     "ember-cli": "~6.11.0",
@@ -114,6 +116,7 @@
     "edition": "octane"
   },
   "dependencies": {
+    "ember-concurrency": "^5.2.0",
     "prettier-plugin-ember-template-tag": "^2.1.3"
   }
 }

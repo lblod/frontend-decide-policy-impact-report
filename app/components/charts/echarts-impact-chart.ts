@@ -32,6 +32,7 @@ type SDG = {
 
 type ChartDataService = {
   filteredSDGData: SDG[];
+  formatPercentage: (value: number) => number;
 };
 
 export default class EchartsImpactChart extends Component {
@@ -64,11 +65,11 @@ export default class EchartsImpactChart extends Component {
 
           const totalDecisions = positiveDecisions + negativeDecisions;
 
-          const negativePercentage = Math.round(
+          const negativePercentage = this.chartData.formatPercentage(
             (negativeDecisions / totalDecisions) * 100,
           );
 
-          const positivePercentage = Math.round(
+          const positivePercentage = this.chartData.formatPercentage(
             (positiveDecisions / totalDecisions) * 100,
           );
 

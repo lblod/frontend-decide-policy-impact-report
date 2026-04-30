@@ -1,12 +1,15 @@
 .ember-power-select-options[role="listbox"] {
   margin-left: unset !important;
+
   li {
     margin-top: unset !important;
   }
+
   .ember-power-select-option {
     padding: 0.6rem 0.6rem 0.6rem 2.4rem !important;
   }
 }
+
 .ember-power-select-status-icon {
   position: absolute !important;
   height: 1.2rem !important;
@@ -14,9 +17,9 @@
   transform: rotate(0deg) !important;
   border-style: none !important;
 }
+
 .card {
   border-radius: 6px;
-  border-width: 2px;
   border: 2px solid #cfd5dd;
   padding: 1.2rem;
 
@@ -25,9 +28,9 @@
     color: #004ab2;
     margin-left: 2rem;
   }
+
   .percentage {
     font-weight: 500;
-    font-style: Medium;
     font-size: 64px;
     line-height: 47px;
     letter-spacing: 0%;
@@ -35,9 +38,11 @@
     vertical-align: middle;
     color: #004ab2;
   }
+
   .chart {
     height: 400px;
   }
+
   .set-chart-type-buttons {
     display: flex;
     justify-content: end;
@@ -58,16 +63,18 @@
     height: 48px;
     cursor: pointer;
   }
+
   .set-chart-type-buttons button:hover,
   .set-chart-type-buttons button.active {
-    background-color: #e4ebf5ff;
-    border: 1px solid #0055ccff;
-    color: #0055ccff;
+    background-color: #e4ebf5;
+    border: 1px solid #05cf;
+    color: #05cf;
     transition: 0.2s ease-in-out;
+
     path,
     img {
-      fill: #0055ccff;
-      color: #0055ccff;
+      fill: #05cf;
+      color: #05cf;
     }
   }
 }
@@ -80,11 +87,14 @@
 }
 
 .sidebar {
-  @media (max-width: 63.9275em) {
+  @media (width <= 63.9275em) {
     max-width: 100% !important;
   }
+
+  min-width: 350px;
   overflow-y: auto;
 }
+
 #select-line {
   min-width: 230px;
 }

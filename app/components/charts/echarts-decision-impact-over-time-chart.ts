@@ -41,6 +41,7 @@ type ChartPoint = {
   year: number;
   positiveDecisions: number;
   negativeDecisions: number;
+  unknownDecisions: number;
 };
 
 export default class EchartsDecisionsImpactOverTimeChart extends Component {
@@ -120,7 +121,10 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
       series.push({
         name: line.name,
         data: data.map(
-          (d) => d.positiveDecisions + Math.abs(d.negativeDecisions),
+          (d) =>
+            d.positiveDecisions +
+            Math.abs(d.negativeDecisions) +
+            d.unknownDecisions,
         ),
         lineStyle: { color: line.colors[0] },
         itemStyle: { color: line.colors[0] },

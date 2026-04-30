@@ -3,7 +3,7 @@
 <AuBodyContainer>
   <AuMainContainer as |m|>
     <m.sidebar
-      @size="large"
+      @size="small"
       @scroll={{true}}
       class="sidebar au-u-background-gray-100"
     >
@@ -24,7 +24,7 @@
         />
         <section class="au-u-flex au-u-flex--column au-u-flex--spaced-small">
           <Report::Stats @chartData={{this.chartData}} />
-          <Report::TopLists />
+          <Report::TopLists @chartData={{this.chartData}} />
           <Report::Charts />
         </section>
       </div>
