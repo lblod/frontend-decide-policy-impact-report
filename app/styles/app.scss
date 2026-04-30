@@ -1,5 +1,5 @@
 $au-flex-utilities-responsive: true;
 
-@import url("@appuniversum/ember-appuniversum/styles");
-@import url("_shame");
-@import url("ember-power-select");
+@use "@appuniversum/ember-appuniversum/styles";
+@use "_shame";
+@use "ember-power-select";

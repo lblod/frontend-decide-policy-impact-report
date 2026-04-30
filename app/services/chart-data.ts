@@ -165,12 +165,11 @@ export default class ChartDataService extends Service {
       `/policy-impact-report/linked-decisions-per-sdg`,
     );
     const data = await response.json();
+    const percentage = (data.count / this.stats.totalSdgDecisions) * 100;
     this.stats = {
       ...this.stats,
       totalSdgLinked: data.count,
-      totalSdgLinkedPercentage: Math.round(
-        (data.count / this.stats.totalSdgDecisions) * 100,
-      ),
+      totalSdgLinkedPercentage: this.formatPercentage(percentage),
     };
   });
 
@@ -230,20 +229,6 @@ export default class ChartDataService extends Service {
     this.getImpactStats();
   }
 
-  getAllDecisionsCount() {
-    return this.privateSDGData.reduce(
-      (acc, sdg) =>
-        acc +
-        (sdg.positiveDecisions ?? 0) +
-        Math.abs(sdg.negativeDecisions ?? 0),
-      0,
-    );
-  }
-
-  getLinkedDecisionsCount() {
-    return Math.round(0.8 * this.getAllDecisionsCount());
-  }
-
   getDecisionImpactOverTime(years: number = 5) {
     const currentYear = new Date().getFullYear();
 
@@ -286,15 +271,18 @@ export default class ChartDataService extends Service {
       { positive: 0, negative: 0, total: 0 },
     );
 
-    const safeTotal = total || 1;
-
+    const safeTotal = this.stats.totalSdgLinked || 1;
     this.stats = {
       ...this.stats,
       totalDecisions: total,
       totalPositiveDecisions: positive,
       totalNegativeDecisions: negative,
-      positiveImpactPercentage: Math.round((positive / safeTotal) * 100),
-      negativeImpactPercentage: Math.round((negative / safeTotal) * 100),
+      positiveImpactPercentage: this.formatPercentage(
+        (positive / safeTotal) * 100,
+      ),
+      negativeImpactPercentage: this.formatPercentage(
+        (negative / safeTotal) * 100,
+      ),
     };
   }
 
@@ -339,5 +327,13 @@ export default class ChartDataService extends Service {
 
   getSdgLabel(sdg: SDG) {
     return sdg.name ?? `SDG ${sdg.id}`;
+  }
+
+  formatPercentage(value: number) {
+    if (value == null || Number.isNaN(value)) return 0;
+
+    return value < 1
+      ? Math.round(value * 100) / 100 // 2 decimals
+      : Math.round(value); // 0 decimals
   }
 }

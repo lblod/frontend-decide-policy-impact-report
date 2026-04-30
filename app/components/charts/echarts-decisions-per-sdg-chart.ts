@@ -33,8 +33,11 @@ type SDG = {
 
 type ChartDataService = {
   filteredSDGData: SDG[];
-  getAllDecisionsCount(): number;
-  getLinkedDecisionsCount(): number;
+  formatPercentage: (value: number) => number;
+  stats: {
+    totalSdgLinked: number;
+    totalSdgDecisions: number;
+  };
 };
 
 export default class EchartsDecisionsPerSdgChart extends Component {
@@ -76,8 +79,8 @@ export default class EchartsDecisionsPerSdgChart extends Component {
 
   loadChartOptions = () => {
     const sdgs = this.chartData.filteredSDGData;
-    const allDecisions = this.chartData.getAllDecisionsCount();
-    const linkedDecisions = this.chartData.getLinkedDecisionsCount();
+    const allDecisions = this.chartData.stats.totalSdgDecisions;
+    const linkedDecisions = this.chartData.stats.totalSdgLinked;
 
     const isBar = this.chartType === 'bar';
 
@@ -92,8 +95,12 @@ export default class EchartsDecisionsPerSdgChart extends Component {
         formatter: (params: any) => {
           const { name, value } = params;
 
-          const allPercentage = Math.round((value / allDecisions) * 100);
-          const linkedPercentage = Math.round((value / linkedDecisions) * 100);
+          const allPercentage = this.chartData.formatPercentage(
+            (value / allDecisions) * 100,
+          );
+          const linkedPercentage = this.chartData.formatPercentage(
+            (value / linkedDecisions) * 100,
+          );
 
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
