@@ -29,6 +29,7 @@ type SDG = {
   color: string;
   positiveDecisions?: number;
   negativeDecisions?: number;
+  unknownDecisions?: number;
 };
 
 type ChartDataService = {
@@ -93,18 +94,18 @@ export default class EchartsDecisionsPerSdgChart extends Component {
         position: isBar ? 'top' : 'right',
         extraCssText: 'pointer-events: auto!important',
         formatter: (params: any) => {
-          const { name, value } = params;
-
+          const { name, value, data } = params;
+          const totalDecisions = value + (data.unknownDecisions ?? 0);
           const allPercentage = this.chartData.formatPercentage(
-            (value / allDecisions) * 100,
+            (totalDecisions / allDecisions) * 100,
           );
           const linkedPercentage = this.chartData.formatPercentage(
-            (value / linkedDecisions) * 100,
+            (totalDecisions / linkedDecisions) * 100,
           );
 
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
-            <a href="#">${echarts.format.encodeHTML(value)} decisions</a>
+            <a href="#">${echarts.format.encodeHTML(totalDecisions.toString())} decisions</a>
             <div>${echarts.format.encodeHTML(linkedPercentage.toString())}% of all linked decisions</div>
             <div>${echarts.format.encodeHTML(allPercentage.toString())}% of all decisions</div>
           `;
@@ -151,6 +152,7 @@ export default class EchartsDecisionsPerSdgChart extends Component {
             value:
               (sdg.positiveDecisions ?? 0) +
               Math.abs(sdg.negativeDecisions ?? 0),
+            unknownDecisions: sdg.unknownDecisions ?? 0,
             itemStyle: {
               color: sdg.color,
               opacity: 0.4,

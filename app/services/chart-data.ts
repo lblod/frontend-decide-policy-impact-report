@@ -12,6 +12,7 @@ export type SDG = {
   rgbaColor: string;
   positiveDecisions?: number;
   negativeDecisions?: number;
+  unknownDecisions?: number;
 };
 
 export type ImpactType =
@@ -116,6 +117,7 @@ export default class ChartDataService extends Service {
 
   @tracked selectedSDGs: string[] = [];
   @tracked privateSDGData: SDG[] = [];
+  @tracked initialLinkedDecisionsCount = 0;
   @service declare store: Store;
 
   @tracked stats = {
@@ -165,11 +167,13 @@ export default class ChartDataService extends Service {
       `/policy-impact-report/linked-decisions-per-sdg`,
     );
     const data = await response.json();
-    const percentage = (data.count / this.stats.totalSdgDecisions) * 100;
+    this.initialLinkedDecisionsCount = data.count;
     this.stats = {
       ...this.stats,
       totalSdgLinked: data.count,
-      totalSdgLinkedPercentage: this.formatPercentage(percentage),
+      totalSdgLinkedPercentage: this.formatPercentage(
+        (data.count / this.stats.totalSdgDecisions) * 100,
+      ),
     };
   });
 
@@ -241,6 +245,10 @@ export default class ChartDataService extends Service {
         (acc, sdg) => acc + Math.abs(sdg.negativeDecisions ?? 0),
         0,
       ),
+      unknownDecisions: sdgs.reduce(
+        (acc, sdg) => acc + (sdg.unknownDecisions ?? 0),
+        0,
+      ),
     });
 
     return Array.from({ length: years }, (_, i) => {
@@ -252,6 +260,7 @@ export default class ChartDataService extends Service {
             year,
             positiveDecisions: 0,
             negativeDecisions: 0,
+            unknownDecisions: 0,
           };
     });
   }
@@ -261,27 +270,37 @@ export default class ChartDataService extends Service {
       (acc, sdg) => {
         const pos = sdg.positiveDecisions ?? 0;
         const neg = Math.abs(sdg.negativeDecisions ?? 0);
-
+        const unknown = sdg.unknownDecisions ?? 0;
         acc.positive += pos;
         acc.negative += neg;
-        acc.total += pos + neg;
+        acc.total += pos + neg + unknown;
 
         return acc;
       },
       { positive: 0, negative: 0, total: 0 },
     );
-
-    const safeTotal = this.stats.totalSdgLinked || 1;
+    const totalSdgLinked =
+      this.selectedSDGs.length > 0
+        ? total
+        : this.initialLinkedDecisionsCount || 1;
     this.stats = {
       ...this.stats,
       totalDecisions: total,
       totalPositiveDecisions: positive,
       totalNegativeDecisions: negative,
       positiveImpactPercentage: this.formatPercentage(
-        (positive / safeTotal) * 100,
+        (positive / totalSdgLinked) * 100,
       ),
       negativeImpactPercentage: this.formatPercentage(
-        (negative / safeTotal) * 100,
+        (negative / totalSdgLinked) * 100,
+      ),
+      totalSdgLinked: totalSdgLinked,
+      totalSdgLinkedPercentage: this.formatPercentage(
+        ((this.selectedSDGs.length > 0
+          ? total
+          : this.initialLinkedDecisionsCount) /
+          this.stats.totalSdgDecisions) *
+          100,
       ),
     };
   }

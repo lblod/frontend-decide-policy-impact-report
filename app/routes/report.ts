@@ -18,9 +18,9 @@ export default class ReportRoute extends Route {
   };
 
   async beforeModel(transition: Transition): Promise<void> {
+    await this.chartData.loadSdgDataTask.perform();
     await this.chartData.fetchTotalDecisionsCountTask.perform();
     await this.chartData.fetchLinkedDecisionsCountTask.perform();
-    await this.chartData.loadSdgDataTask.perform();
     await this.chartData.fetchImpactDataTask.perform();
 
     const localAuthorityId = transition.to?.queryParams?.['localAuthority'];
