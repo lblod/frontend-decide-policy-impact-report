@@ -3,6 +3,8 @@ import Component from '@glimmer/component';
 import * as echarts from 'echarts/core';
 import type { ECharts } from 'echarts/core';
 
+import { buildHvtUrl } from 'frontend-decide-policy-impact-report/utils/hvt';
+
 import { SVGRenderer } from 'echarts/renderers';
 import { BarChart } from 'echarts/charts';
 import {
@@ -24,6 +26,7 @@ echarts.use([
 ]);
 
 type SDG = {
+  uuid?: string;
   name: string;
   color: string;
   positiveDecisions?: number;
@@ -60,6 +63,7 @@ export default class EchartsImpactChart extends Component {
         extraCssText: 'pointer-events: auto!important',
         formatter: (params: any) => {
           const name = params[0]?.name;
+          const uuid = params[0]?.data?.uuid;
           const positiveDecisions = params[0]?.value ?? 0;
           const negativeDecisions = Math.abs(params[1]?.value ?? 0);
 
@@ -73,9 +77,11 @@ export default class EchartsImpactChart extends Component {
             (positiveDecisions / totalDecisions) * 100,
           );
 
+          const hvtUrl = buildHvtUrl({ concepts: uuid });
+
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
-            <a href="#">${echarts.format.encodeHTML(totalDecisions)} decisions</a>
+            <a href="${hvtUrl}" target="_blank" rel="noopener noreferrer">${echarts.format.encodeHTML(totalDecisions)} decisions</a>
             <div>${echarts.format.encodeHTML(
               negativeDecisions.toString(),
             )} with negative impact (${echarts.format.encodeHTML(
@@ -130,6 +136,7 @@ export default class EchartsImpactChart extends Component {
           data: sdgs.map((sdg) => ({
             name: sdg.name,
             value: sdg.positiveDecisions ?? 0,
+            uuid: sdg.uuid,
             itemStyle: {
               color: sdg.color,
               opacity: 0.4,
@@ -151,6 +158,7 @@ export default class EchartsImpactChart extends Component {
           data: sdgs.map((sdg) => ({
             name: sdg.name,
             value: sdg.negativeDecisions ?? 0,
+            uuid: sdg.uuid,
             itemStyle: {
               color: sdg.color,
               opacity: 0.4,

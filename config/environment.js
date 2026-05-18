@@ -18,6 +18,10 @@ module.exports = function (environment) {
       // Here you can pass flags/options to your application instance
       // when it is created
     },
+
+    hvtBaseUrl:
+      process.env['HVT_BASE_URL'] ??
+      'https://human-validator.decide-dev.s.redhost.be',
   };
 
   if (environment === 'development') {

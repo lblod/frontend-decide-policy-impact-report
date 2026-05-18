@@ -7,7 +7,11 @@
     {{#if @chartData.topSDGsOverall.length}}
       <ol>
         {{#each @chartData.topSDGsOverall as |sdg|}}
-          <li><AuLink>{{sdg.name}}</AuLink></li>
+          <li>
+            <AuLinkExternal href={{hvt-url sdg.uuid}} target="_blank">
+              {{sdg.name}}
+            </AuLinkExternal>
+          </li>
         {{/each}}
       </ol>
     {{else}}
@@ -20,7 +24,14 @@
     {{#if @chartData.topSDGsPositive.length}}
       <ol>
         {{#each @chartData.topSDGsPositive as |sdg|}}
-          <li><AuLink>{{sdg.name}}</AuLink></li>
+          <li>
+            <AuLinkExternal
+              href={{hvt-url sdg.uuid impact="positive"}}
+              target="_blank"
+            >
+              {{sdg.name}}
+            </AuLinkExternal>
+          </li>
         {{/each}}
       </ol>
     {{else}}
@@ -33,7 +44,14 @@
     {{#if @chartData.topSDGsNegative.length}}
       <ol>
         {{#each @chartData.topSDGsNegative as |sdg|}}
-          <li><AuLink>{{sdg.name}}</AuLink></li>
+          <li>
+            <AuLinkExternal
+              href={{hvt-url sdg.uuid impact="negative"}}
+              target="_blank"
+            >
+              {{sdg.name}}
+            </AuLinkExternal>
+          </li>
         {{/each}}
       </ol>
     {{else}}

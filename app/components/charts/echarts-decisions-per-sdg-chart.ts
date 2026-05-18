@@ -5,6 +5,8 @@ import Component from '@glimmer/component';
 import * as echarts from 'echarts/core';
 import type { ECharts } from 'echarts/core';
 
+import { buildHvtUrl } from 'frontend-decide-policy-impact-report/utils/hvt';
+
 import { BarChart, PieChart } from 'echarts/charts';
 import {
   GridComponent,
@@ -25,6 +27,7 @@ echarts.use([
 type ChartType = 'bar' | 'pie';
 
 type SDG = {
+  uuid?: string;
   name: string;
   color: string;
   positiveDecisions?: number;
@@ -103,9 +106,11 @@ export default class EchartsDecisionsPerSdgChart extends Component {
             (totalDecisions / linkedDecisions) * 100,
           );
 
+          const hvtUrl = buildHvtUrl({ concepts: data.uuid });
+
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
-            <a href="#">${echarts.format.encodeHTML(totalDecisions.toString())} decisions</a>
+            <a href="${hvtUrl}" target="_blank" rel="noopener noreferrer">${echarts.format.encodeHTML(totalDecisions.toString())} decisions</a>
             <div>${echarts.format.encodeHTML(linkedPercentage.toString())}% of all linked decisions</div>
             <div>${echarts.format.encodeHTML(allPercentage.toString())}% of all decisions</div>
           `;
@@ -152,6 +157,7 @@ export default class EchartsDecisionsPerSdgChart extends Component {
             value:
               (sdg.positiveDecisions ?? 0) +
               Math.abs(sdg.negativeDecisions ?? 0),
+            uuid: sdg.uuid,
             unknownDecisions: sdg.unknownDecisions ?? 0,
             itemStyle: {
               color: sdg.color,
