@@ -2,19 +2,27 @@ import { assert } from '@ember/debug';
 import { typeOf } from '@ember/utils';
 import Transform from '@ember-data/serializer/transform';
 
-const LangString = function (content, lang) {
-  this.content = content;
-  this.language = lang;
-  this.toString = function () {
-    if (!this.language || this.language == 'en') {
-      return this['content'];
+export class LangString {
+  content: string;
+  language: string | null;
+
+  constructor(content: string, lang: string | null) {
+    this.content = content;
+    this.language = lang;
+  }
+
+  toString(): string {
+    if (!this.language || this.language === 'en') {
+      return this.content;
     }
-    return `${this['content']} (${this['language']})`;
-  };
-};
+    return `${this.content} (${this.language})`;
+  }
+}
+
+type SerializedLangString = { content: string; language: string } | string;
 
 export default class LangStringTransform extends Transform {
-  deserialize(serialized) {
+  deserialize(serialized: SerializedLangString | null): LangString | null {
     if (serialized != null) {
       if (typeof serialized === 'string') {
         return new LangString(serialized, null);
@@ -25,7 +33,7 @@ export default class LangStringTransform extends Transform {
     }
   }
 
-  serialize(deserialized) {
+  serialize(deserialized: LangString | null): LangString | null {
     assert(
       `Expected object but got ${typeOf(deserialized)}`,
       !deserialized || typeOf(deserialized) === 'object',
@@ -33,5 +41,3 @@ export default class LangStringTransform extends Transform {
     return deserialized;
   }
 }
-
-export { LangString };
