@@ -1,4 +1,4 @@
-import config from 'frontend-decide-policy-impact-report/config/environment';
+import ENV from 'frontend-decide-policy-impact-report/config/environment';
 
 const SDG_CONCEPT_SCHEME_UUID = '785cfa4d-6d74-46ad-a99c-1acc176db89e';
 
@@ -31,5 +31,5 @@ export function buildHvtUrl({
   if (year !== undefined) params['year'] = String(year);
   if (impact) params['impact'] = impactUuid[impact];
 
-  return `${config.hvtBaseUrl}/validate-expression-labels?${new URLSearchParams(params).toString()}`;
+  return `${ENV.hvtBaseUrl}/validate-expression-labels?${new URLSearchParams(params).toString()}`;
 }
