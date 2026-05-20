@@ -20,8 +20,9 @@ module.exports = function (environment) {
     },
 
     hvtBaseUrl:
-      process.env['HVT_BASE_URL'] ??
-      'https://human-validator.decide-dev.s.redhost.be',
+      '{{HVT_BASE_URL}}'.length > 0
+        ? '{{HVT_BASE_URL}}'
+        : 'https://human-validator.decide.lblod.info',
   };
 
   if (environment === 'development') {
