@@ -56,6 +56,8 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
   };
 
   declare chart?: ECharts;
+  outsideClickHandler?: (e: MouseEvent) => void;
+  clickLockTimer?: ReturnType<typeof setTimeout>;
 
   lineOptions: LineType[] = [
     {
@@ -93,8 +95,12 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
     this.loadChartOptions();
 
     registerDestructor(this, () => {
+      clearTimeout(this.clickLockTimer);
       window.removeEventListener('resize', this.resizeHandler);
       this.chart?.dispose();
+      if (this.outsideClickHandler) {
+        document.removeEventListener('click', this.outsideClickHandler);
+      }
     });
   }
 
@@ -225,6 +231,14 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
     return `background-color: ${color};`;
   }
 
+  lockHoverFor(ms: number) {
+    clearTimeout(this.clickLockTimer);
+    this.chart?.setOption({ tooltip: { triggerOn: 'click' } });
+    this.clickLockTimer = setTimeout(() => {
+      this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+    }, ms);
+  }
+
   renderChart = (element: HTMLElement) => {
     this.chart = echarts.init(element, null, {
       renderer: 'svg',
@@ -232,6 +246,17 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
 
     this.chart.setOption(this.chartOptions);
     window.addEventListener('resize', this.resizeHandler);
+
+    this.chart.on('click', () => this.lockHoverFor(3000));
+
+    this.outsideClickHandler = (e: MouseEvent) => {
+      if (!element.contains(e.target as Node)) {
+        clearTimeout(this.clickLockTimer);
+        this.chart?.dispatchAction({ type: 'hideTip' });
+        this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+      }
+    };
+    document.addEventListener('click', this.outsideClickHandler);
   };
 
   updateChart = () => {

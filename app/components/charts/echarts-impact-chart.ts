@@ -43,6 +43,8 @@ export default class EchartsImpactChart extends Component {
 
   declare chart?: ECharts;
   chartOptions: EChartsOption = {};
+  outsideClickHandler?: (e: MouseEvent) => void;
+  clickLockTimer?: ReturnType<typeof setTimeout>;
 
   loadChartOptions = () => {
     const sdgs = this.chartData.filteredSDGData;
@@ -59,6 +61,7 @@ export default class EchartsImpactChart extends Component {
         trigger: 'axis',
         axisPointer: { type: 'none' },
         triggerOn: 'mousemove|click',
+        hideDelay: 500,
         enterable: true,
         extraCssText: 'pointer-events: auto!important',
         formatter: (params: any) => {
@@ -94,7 +97,6 @@ export default class EchartsImpactChart extends Component {
             )}%)</div>
           `;
         },
-        hideDelay: 500,
       },
 
       grid: {
@@ -180,9 +182,21 @@ export default class EchartsImpactChart extends Component {
     this.loadChartOptions();
   }
 
+  lockHoverFor(ms: number) {
+    clearTimeout(this.clickLockTimer);
+    this.chart?.setOption({ tooltip: { triggerOn: 'click' } });
+    this.clickLockTimer = setTimeout(() => {
+      this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+    }, ms);
+  }
+
   willDestroy(): void {
+    clearTimeout(this.clickLockTimer);
     this.chart?.dispose();
     window.removeEventListener('resize', this.resizeHandler);
+    if (this.outsideClickHandler) {
+      document.removeEventListener('click', this.outsideClickHandler);
+    }
   }
 
   resizeHandler = () => {
@@ -198,6 +212,17 @@ export default class EchartsImpactChart extends Component {
 
     this.chart.setOption(this.chartOptions);
     window.addEventListener('resize', this.resizeHandler);
+
+    this.chart.on('click', () => this.lockHoverFor(3000));
+
+    this.outsideClickHandler = (e: MouseEvent) => {
+      if (!element.contains(e.target as Node)) {
+        clearTimeout(this.clickLockTimer);
+        this.chart?.dispatchAction({ type: 'hideTip' });
+        this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+      }
+    };
+    document.addEventListener('click', this.outsideClickHandler);
   };
 
   updateChart = () => {
