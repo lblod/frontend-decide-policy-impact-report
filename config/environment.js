@@ -1,11 +1,6 @@
 'use strict';
 
 module.exports = function (environment) {
-  let hvtBaseUrl = '{{HVT_BASE_URL}}';
-
-  if (hvtBaseUrl === '{{HVT_BASE_URL}}') {
-    hvtBaseUrl = 'https://human-validator.decide.lblod.info';
-  }
   const ENV = {
     modulePrefix: 'frontend-decide-policy-impact-report',
     environment,
@@ -24,7 +19,9 @@ module.exports = function (environment) {
       // when it is created
     },
 
-    hvtBaseUrl,
+    hvtBaseUrl: '{{HVT_BASE_URL}}'.startsWith('{{')
+      ? 'https://human-validator.decide.lblod.info'
+      : '{{HVT_BASE_URL}}',
   };
 
   if (environment === 'development') {
