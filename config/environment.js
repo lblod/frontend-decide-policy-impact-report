@@ -19,9 +19,7 @@ module.exports = function (environment) {
       // when it is created
     },
 
-    hvtBaseUrl: '{{HVT_BASE_URL}}'.startsWith('{{')
-      ? 'https://human-validator.decide.lblod.info'
-      : '{{HVT_BASE_URL}}',
+    hvtBaseUrl: '{{HVT_BASE_URL}}',
   };
 
   if (environment === 'development') {
