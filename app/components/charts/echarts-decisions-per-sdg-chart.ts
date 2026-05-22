@@ -5,6 +5,8 @@ import Component from '@glimmer/component';
 import * as echarts from 'echarts/core';
 import type { ECharts } from 'echarts/core';
 
+import { buildHvtUrl } from 'frontend-decide-policy-impact-report/utils/hvt';
+
 import { BarChart, PieChart } from 'echarts/charts';
 import {
   GridComponent,
@@ -25,6 +27,7 @@ echarts.use([
 type ChartType = 'bar' | 'pie';
 
 type SDG = {
+  uuid?: string;
   name: string;
   color: string;
   positiveDecisions?: number;
@@ -49,6 +52,8 @@ export default class EchartsDecisionsPerSdgChart extends Component {
   @tracked chartOptions: EChartsOption = {};
 
   chart?: ECharts;
+  outsideClickHandler?: (e: MouseEvent) => void;
+  clickLockTimer?: ReturnType<typeof setTimeout>;
 
   setChartTypeToBar = () => {
     this.loading = true;
@@ -89,6 +94,7 @@ export default class EchartsDecisionsPerSdgChart extends Component {
       tooltip: {
         trigger: 'item',
         triggerOn: 'mousemove|click',
+        hideDelay: 1000,
         confine: false,
         enterable: true,
         position: isBar ? 'top' : 'right',
@@ -103,14 +109,15 @@ export default class EchartsDecisionsPerSdgChart extends Component {
             (totalDecisions / linkedDecisions) * 100,
           );
 
+          const hvtUrl = buildHvtUrl({ concepts: data.uuid });
+
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
-            <a href="#">${echarts.format.encodeHTML(totalDecisions.toString())} decisions</a>
+            <a href="${hvtUrl}" target="_blank" rel="noopener noreferrer">${echarts.format.encodeHTML(totalDecisions.toString())} decisions</a>
             <div>${echarts.format.encodeHTML(linkedPercentage.toString())}% of all linked decisions</div>
             <div>${echarts.format.encodeHTML(allPercentage.toString())}% of all decisions</div>
           `;
         },
-        hideDelay: 1000,
       },
 
       grid: {
@@ -152,6 +159,7 @@ export default class EchartsDecisionsPerSdgChart extends Component {
             value:
               (sdg.positiveDecisions ?? 0) +
               Math.abs(sdg.negativeDecisions ?? 0),
+            uuid: sdg.uuid,
             unknownDecisions: sdg.unknownDecisions ?? 0,
             itemStyle: {
               color: sdg.color,
@@ -180,9 +188,21 @@ export default class EchartsDecisionsPerSdgChart extends Component {
     this.loadChartOptions();
   }
 
+  lockHoverFor(ms: number) {
+    clearTimeout(this.clickLockTimer);
+    this.chart?.setOption({ tooltip: { triggerOn: 'click' } });
+    this.clickLockTimer = setTimeout(() => {
+      this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+    }, ms);
+  }
+
   willDestroy(): void {
+    clearTimeout(this.clickLockTimer);
     this.chart?.dispose();
     window.removeEventListener('resize', this.resizeHandler);
+    if (this.outsideClickHandler) {
+      document.removeEventListener('click', this.outsideClickHandler);
+    }
   }
 
   resizeHandler = () => {
@@ -198,6 +218,17 @@ export default class EchartsDecisionsPerSdgChart extends Component {
 
     this.chart.setOption(this.chartOptions);
     window.addEventListener('resize', this.resizeHandler);
+
+    this.chart.on('click', () => this.lockHoverFor(3000));
+
+    this.outsideClickHandler = (e: MouseEvent) => {
+      if (!element.contains(e.target as Node)) {
+        clearTimeout(this.clickLockTimer);
+        this.chart?.dispatchAction({ type: 'hideTip' });
+        this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+      }
+    };
+    document.addEventListener('click', this.outsideClickHandler);
   };
 
   updateChart = () => {
