@@ -30,8 +30,8 @@ export function buildHvtUrl({
   if (concepts) params['concepts'] = concepts;
   if (year !== undefined) params['year'] = String(year);
   if (impact) params['impact'] = impactUuid[impact];
-  const hvtBaseUrl = '{{HVT_BASE_URL}}'.startsWith('{{')
+  const hvtBaseUrl = ENV.hvtBaseUrl.startsWith('{{')
     ? 'https://human-validator.decide.lblod.info'
-    : '{{HVT_BASE_URL}}';
+    : ENV.hvtBaseUrl;
   return `${hvtBaseUrl}/validate-expression-labels?${new URLSearchParams(params).toString()}`;
 }
