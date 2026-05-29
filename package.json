@@ -1,6 +1,6 @@
 {
   "name": "frontend-decide-policy-impact-report",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "The Policy Impact Report frontend is an interactive report that visualises aggregated insights on how a city's LD&L relate to one or more policy frameworks.",
   "repository": "",
