@@ -3,6 +3,8 @@ import Component from '@glimmer/component';
 import * as echarts from 'echarts/core';
 import type { ECharts } from 'echarts/core';
 
+import { buildHvtUrl } from 'frontend-decide-policy-impact-report/utils/hvt';
+
 import { SVGRenderer } from 'echarts/renderers';
 import { BarChart } from 'echarts/charts';
 import {
@@ -24,6 +26,7 @@ echarts.use([
 ]);
 
 type SDG = {
+  uuid?: string;
   name: string;
   color: string;
   positiveDecisions?: number;
@@ -40,6 +43,8 @@ export default class EchartsImpactChart extends Component {
 
   declare chart?: ECharts;
   chartOptions: EChartsOption = {};
+  outsideClickHandler?: (e: MouseEvent) => void;
+  clickLockTimer?: ReturnType<typeof setTimeout>;
 
   loadChartOptions = () => {
     const sdgs = this.chartData.filteredSDGData;
@@ -56,10 +61,12 @@ export default class EchartsImpactChart extends Component {
         trigger: 'axis',
         axisPointer: { type: 'none' },
         triggerOn: 'mousemove|click',
+        hideDelay: 500,
         enterable: true,
         extraCssText: 'pointer-events: auto!important',
         formatter: (params: any) => {
           const name = params[0]?.name;
+          const uuid = params[0]?.data?.uuid;
           const positiveDecisions = params[0]?.value ?? 0;
           const negativeDecisions = Math.abs(params[1]?.value ?? 0);
 
@@ -73,9 +80,11 @@ export default class EchartsImpactChart extends Component {
             (positiveDecisions / totalDecisions) * 100,
           );
 
+          const hvtUrl = buildHvtUrl({ concepts: uuid });
+
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
-            <a href="#">${echarts.format.encodeHTML(totalDecisions)} decisions</a>
+            <a href="${hvtUrl}" target="_blank" rel="noopener noreferrer">${echarts.format.encodeHTML(totalDecisions)} decisions</a>
             <div>${echarts.format.encodeHTML(
               negativeDecisions.toString(),
             )} with negative impact (${echarts.format.encodeHTML(
@@ -88,7 +97,6 @@ export default class EchartsImpactChart extends Component {
             )}%)</div>
           `;
         },
-        hideDelay: 500,
       },
 
       grid: {
@@ -130,6 +138,7 @@ export default class EchartsImpactChart extends Component {
           data: sdgs.map((sdg) => ({
             name: sdg.name,
             value: sdg.positiveDecisions ?? 0,
+            uuid: sdg.uuid,
             itemStyle: {
               color: sdg.color,
               opacity: 0.4,
@@ -151,6 +160,7 @@ export default class EchartsImpactChart extends Component {
           data: sdgs.map((sdg) => ({
             name: sdg.name,
             value: sdg.negativeDecisions ?? 0,
+            uuid: sdg.uuid,
             itemStyle: {
               color: sdg.color,
               opacity: 0.4,
@@ -172,9 +182,21 @@ export default class EchartsImpactChart extends Component {
     this.loadChartOptions();
   }
 
+  lockHoverFor(ms: number) {
+    clearTimeout(this.clickLockTimer);
+    this.chart?.setOption({ tooltip: { triggerOn: 'click' } });
+    this.clickLockTimer = setTimeout(() => {
+      this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+    }, ms);
+  }
+
   willDestroy(): void {
+    clearTimeout(this.clickLockTimer);
     this.chart?.dispose();
     window.removeEventListener('resize', this.resizeHandler);
+    if (this.outsideClickHandler) {
+      document.removeEventListener('click', this.outsideClickHandler);
+    }
   }
 
   resizeHandler = () => {
@@ -190,6 +212,17 @@ export default class EchartsImpactChart extends Component {
 
     this.chart.setOption(this.chartOptions);
     window.addEventListener('resize', this.resizeHandler);
+
+    this.chart.on('click', () => this.lockHoverFor(3000));
+
+    this.outsideClickHandler = (e: MouseEvent) => {
+      if (!element.contains(e.target as Node)) {
+        clearTimeout(this.clickLockTimer);
+        this.chart?.dispatchAction({ type: 'hideTip' });
+        this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+      }
+    };
+    document.addEventListener('click', this.outsideClickHandler);
   };
 
   updateChart = () => {

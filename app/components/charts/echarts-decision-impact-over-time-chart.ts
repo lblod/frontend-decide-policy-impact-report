@@ -1,6 +1,11 @@
 import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { registerDestructor } from '@ember/destroyable';
+
+import {
+  buildHvtUrl,
+  type ImpactKey,
+} from 'frontend-decide-policy-impact-report/utils/hvt';
 import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import * as echarts from 'echarts/core';
@@ -47,9 +52,12 @@ type ChartPoint = {
 export default class EchartsDecisionsImpactOverTimeChart extends Component {
   @service declare chartData: {
     getDecisionImpactOverTime(): ChartPoint[];
+    filteredSDGData: Array<{ uuid?: string }>;
   };
 
   declare chart?: ECharts;
+  outsideClickHandler?: (e: MouseEvent) => void;
+  clickLockTimer?: ReturnType<typeof setTimeout>;
 
   lineOptions: LineType[] = [
     {
@@ -87,8 +95,12 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
     this.loadChartOptions();
 
     registerDestructor(this, () => {
+      clearTimeout(this.clickLockTimer);
       window.removeEventListener('resize', this.resizeHandler);
       this.chart?.dispose();
+      if (this.outsideClickHandler) {
+        document.removeEventListener('click', this.outsideClickHandler);
+      }
     });
   }
 
@@ -157,8 +169,19 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
     return series;
   }
 
+  private impactKeyFromSeriesName(seriesName: string): ImpactKey | undefined {
+    const lower = seriesName.toLowerCase();
+    if (lower.includes('positive')) return 'positive';
+    if (lower.includes('negative')) return 'negative';
+    return undefined;
+  }
+
   loadChartOptions = () => {
     const data = this.chartData.getDecisionImpactOverTime();
+    const selectedConcepts = this.chartData.filteredSDGData
+      .map((sdg) => sdg.uuid)
+      .filter((uuid): uuid is string => Boolean(uuid))
+      .join(',');
 
     this.chartOptions = {
       tooltip: {
@@ -168,10 +191,15 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
         extraCssText: 'pointer-events: auto!important',
         formatter: (params: any) => {
           const { name, value, seriesName } = params;
+          const hvtUrl = buildHvtUrl({
+            year: name,
+            concepts: selectedConcepts || undefined,
+            impact: this.impactKeyFromSeriesName(seriesName),
+          });
 
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
-            <a href="#">
+            <a href="${hvtUrl}" target="_blank" rel="noopener noreferrer">
               ${echarts.format.encodeHTML(value)} ${echarts.format
                 .encodeHTML(seriesName)
                 .toLowerCase()
@@ -203,6 +231,14 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
     return `background-color: ${color};`;
   }
 
+  lockHoverFor(ms: number) {
+    clearTimeout(this.clickLockTimer);
+    this.chart?.setOption({ tooltip: { triggerOn: 'click' } });
+    this.clickLockTimer = setTimeout(() => {
+      this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+    }, ms);
+  }
+
   renderChart = (element: HTMLElement) => {
     this.chart = echarts.init(element, null, {
       renderer: 'svg',
@@ -210,6 +246,17 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
 
     this.chart.setOption(this.chartOptions);
     window.addEventListener('resize', this.resizeHandler);
+
+    this.chart.on('click', () => this.lockHoverFor(3000));
+
+    this.outsideClickHandler = (e: MouseEvent) => {
+      if (!element.contains(e.target as Node)) {
+        clearTimeout(this.clickLockTimer);
+        this.chart?.dispatchAction({ type: 'hideTip' });
+        this.chart?.setOption({ tooltip: { triggerOn: 'mousemove|click' } });
+      }
+    };
+    document.addEventListener('click', this.outsideClickHandler);
   };
 
   updateChart = () => {
