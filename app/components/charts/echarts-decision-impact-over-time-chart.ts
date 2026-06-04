@@ -53,6 +53,7 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
   @service declare chartData: {
     getDecisionImpactOverTime(): ChartPoint[];
     filteredSDGData: Array<{ uuid?: string }>;
+    governingBodyUri?: string | null;
   };
 
   declare chart?: ECharts;
@@ -195,6 +196,7 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
             year: name,
             concepts: selectedConcepts || undefined,
             impact: this.impactKeyFromSeriesName(seriesName),
+            municipality: this.chartData.governingBodyUri,
           });
 
           return `

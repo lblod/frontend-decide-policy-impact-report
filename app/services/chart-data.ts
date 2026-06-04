@@ -118,7 +118,14 @@ export default class ChartDataService extends Service {
   @tracked selectedSDGs: string[] = [];
   @tracked privateSDGData: SDG[] = [];
   @tracked initialLinkedDecisionsCount = 0;
+  @tracked governingBodyUri?: string | null = null;
   @service declare store: Store;
+
+  withGoverningBody(url: string): string {
+    if (!this.governingBodyUri) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}governingBody=${encodeURIComponent(this.governingBodyUri)}`;
+  }
 
   @tracked stats = {
     totalDecisions: 0,
@@ -148,13 +155,17 @@ export default class ChartDataService extends Service {
   });
 
   fetchImpactDataTask = task(async () => {
-    const response = await fetch(`/policy-impact-report/impact-by-sdg`);
+    const response = await fetch(
+      this.withGoverningBody(`/policy-impact-report/impact-by-sdg`),
+    );
     const data = await response.json();
     this.applyImpactData(data);
   });
 
   fetchTotalDecisionsCountTask = task(async () => {
-    const response = await fetch(`/policy-impact-report/total-decisions`);
+    const response = await fetch(
+      this.withGoverningBody(`/policy-impact-report/total-decisions`),
+    );
     const data = await response.json();
     this.stats = {
       ...this.stats,
@@ -164,7 +175,7 @@ export default class ChartDataService extends Service {
 
   fetchLinkedDecisionsCountTask = task(async () => {
     const response = await fetch(
-      `/policy-impact-report/linked-decisions-per-sdg`,
+      this.withGoverningBody(`/policy-impact-report/linked-decisions-per-sdg`),
     );
     const data = await response.json();
     this.initialLinkedDecisionsCount = data.count;

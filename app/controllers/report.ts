@@ -21,8 +21,7 @@ export default class ReportController extends Controller {
   @action
   changeSelectLocalAuthority(selected: LocalGovernmentOption) {
     this.localAuthorityData.selectedLocalAuthority = selected;
-    this.localAuthority = this.localAuthorityData.selectedLocalAuthority.id;
-    this.chartData.setSDGFilter(this.chartData.selectedSDGs);
+    this.localAuthority = selected.id;
   }
 
   @action

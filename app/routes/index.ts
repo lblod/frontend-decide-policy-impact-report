@@ -14,7 +14,9 @@ export default class IndexRoute extends Route {
     localAuthority: { refreshModel: true },
   };
 
-  beforeModel(transition: Transition): void {
+  async beforeModel(transition: Transition): Promise<void> {
+    await this.localAuthorityData.loadLocalAuthoritiesTask.perform();
+
     const localAuthorityId = transition.to?.queryParams?.['localAuthority'];
     if (localAuthorityId) {
       const selected = this.localAuthorityData.localAuthorityOptions.find(

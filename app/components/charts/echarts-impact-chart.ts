@@ -36,6 +36,7 @@ type SDG = {
 type ChartDataService = {
   filteredSDGData: SDG[];
   formatPercentage: (value: number) => number;
+  governingBodyUri?: string | null;
 };
 
 export default class EchartsImpactChart extends Component {
@@ -80,7 +81,10 @@ export default class EchartsImpactChart extends Component {
             (positiveDecisions / totalDecisions) * 100,
           );
 
-          const hvtUrl = buildHvtUrl({ concepts: uuid });
+          const hvtUrl = buildHvtUrl({
+            concepts: uuid,
+            municipality: this.chartData.governingBodyUri,
+          });
 
           return `
             <h4 style="margin: 5px 0">${echarts.format.encodeHTML(name)}</h4>
