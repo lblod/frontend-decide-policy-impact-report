@@ -32,6 +32,10 @@
 
 <div
   {{did-insert this.renderChart}}
-  {{did-update this.updateChart this.chartData.selectedSDGs}}
+  {{did-update
+    this.updateChart
+    this.chartData.privateSDGData
+    this.chartData.selectedSDGs
+  }}
   class="chart"
 ></div>

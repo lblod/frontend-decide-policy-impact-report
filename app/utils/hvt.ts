@@ -13,10 +13,12 @@ export function buildHvtUrl({
   concepts,
   impact,
   year,
+  municipality,
 }: {
   concepts?: string;
   impact?: ImpactKey;
   year?: string | number;
+  municipality?: string | null;
 }): string {
   if (!concepts && year === undefined) return '#';
 
@@ -30,6 +32,7 @@ export function buildHvtUrl({
   if (concepts) params['concepts'] = concepts;
   if (year !== undefined) params['year'] = String(year);
   if (impact) params['impact'] = impactUuid[impact];
+  if (municipality) params['municipality'] = municipality;
   const hvtBaseUrl = ENV.hvtBaseUrl.startsWith('{{')
     ? 'https://human-validator.decide.lblod.info'
     : ENV.hvtBaseUrl;
