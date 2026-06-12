@@ -7,6 +7,7 @@ import type Concept from 'frontend-decide-policy-impact-report/models/concept';
 export type SDG = {
   id: string;
   uuid?: string;
+  uri?: string;
   name?: string;
   color: string;
   rgbaColor: string;
@@ -117,7 +118,6 @@ export default class ChartDataService extends Service {
 
   @tracked selectedSDGs: string[] = [];
   @tracked privateSDGData: SDG[] = [];
-  @tracked initialLinkedDecisionsCount = 0;
   @tracked governingBodyUri?: string | null = null;
   @service declare store: Store;
 
@@ -125,6 +125,23 @@ export default class ChartDataService extends Service {
     if (!this.governingBodyUri) return url;
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}governingBody=${encodeURIComponent(this.governingBodyUri)}`;
+  }
+
+  withSelectedSdgs(url: string): string {
+    const uris = this.selectedSdgUris;
+    if (uris.length === 0) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    const params = uris
+      .map((uri) => `sdg=${encodeURIComponent(uri)}`)
+      .join('&');
+    return `${url}${separator}${params}`;
+  }
+
+  get selectedSdgUris(): string[] {
+    return this.privateSDGData
+      .filter((sdg) => this.selectedSDGs.includes(sdg.id))
+      .map((sdg) => sdg.uri)
+      .filter((uri): uri is string => !!uri);
   }
 
   @tracked stats = {
@@ -172,24 +189,52 @@ export default class ChartDataService extends Service {
       totalSdgDecisions: data.count,
     };
   });
+  refreshImpactStatsTask = task(async () => {
+    const [linkedResponse, impactResponse] = await Promise.all([
+      fetch(
+        this.withSelectedSdgs(
+          this.withGoverningBody(
+            `/policy-impact-report/linked-decisions-per-sdg`,
+          ),
+        ),
+      ),
+      fetch(
+        this.withSelectedSdgs(
+          this.withGoverningBody(`/policy-impact-report/decisions-by-impact`),
+        ),
+      ),
+    ]);
+    const linked = await linkedResponse.json();
+    const impact = await impactResponse.json();
 
-  fetchLinkedDecisionsCountTask = task(async () => {
-    const response = await fetch(
-      this.withGoverningBody(`/policy-impact-report/linked-decisions-per-sdg`),
-    );
-    const data = await response.json();
-    this.initialLinkedDecisionsCount = data.count;
+    const linkedCount = linked.count ?? 0;
+    const safeLinked = linkedCount || 1;
+
     this.stats = {
       ...this.stats,
-      totalSdgLinked: data.count,
+      totalSdgLinked: linkedCount,
       totalSdgLinkedPercentage: this.formatPercentage(
-        (data.count / this.stats.totalSdgDecisions) * 100,
+        (linkedCount / this.stats.totalSdgDecisions) * 100,
+      ),
+      totalPositiveDecisions: impact.positive ?? 0,
+      totalNegativeDecisions: impact.negative ?? 0,
+      positiveImpactPercentage: this.formatPercentage(
+        ((impact.positive ?? 0) / safeLinked) * 100,
+      ),
+      negativeImpactPercentage: this.formatPercentage(
+        ((impact.negative ?? 0) / safeLinked) * 100,
       ),
     };
   });
 
   applyImpactData(data: ImpactApiRow[]) {
     const map = this.transformImpactData(data);
+
+    const uriByUuid = new Map<string, string>();
+    for (const row of data) {
+      const uuid = this.extractUuid(row.sdg);
+      if (uuid && !uriByUuid.has(uuid)) uriByUuid.set(uuid, row.sdg);
+    }
 
     this.privateSDGData = this.sdgs.map((sdg) => {
       const impact = sdg.uuid
@@ -198,13 +243,12 @@ export default class ChartDataService extends Service {
 
       return {
         ...sdg,
+        uri: sdg.uuid ? uriByUuid.get(sdg.uuid) : undefined,
         positiveDecisions: impact.positive,
         negativeDecisions: -impact.negative,
         unknownDecisions: impact.unknown,
       };
     });
-
-    this.getImpactStats();
   }
 
   transformImpactData(data: ImpactApiRow[]) {
@@ -241,7 +285,7 @@ export default class ChartDataService extends Service {
 
   setSDGFilter(sdgIds: string[]) {
     this.selectedSDGs = sdgIds;
-    this.getImpactStats();
+    this.refreshImpactStatsTask.perform();
   }
 
   getDecisionImpactOverTime(years: number = 5) {
@@ -274,46 +318,6 @@ export default class ChartDataService extends Service {
             unknownDecisions: 0,
           };
     });
-  }
-
-  getImpactStats() {
-    const { positive, negative, total } = this.filteredSDGData.reduce(
-      (acc, sdg) => {
-        const pos = sdg.positiveDecisions ?? 0;
-        const neg = Math.abs(sdg.negativeDecisions ?? 0);
-        const unknown = sdg.unknownDecisions ?? 0;
-        acc.positive += pos;
-        acc.negative += neg;
-        acc.total += pos + neg + unknown;
-
-        return acc;
-      },
-      { positive: 0, negative: 0, total: 0 },
-    );
-    const totalSdgLinked =
-      this.selectedSDGs.length > 0
-        ? total
-        : this.initialLinkedDecisionsCount || 1;
-    this.stats = {
-      ...this.stats,
-      totalDecisions: total,
-      totalPositiveDecisions: positive,
-      totalNegativeDecisions: negative,
-      positiveImpactPercentage: this.formatPercentage(
-        (positive / totalSdgLinked) * 100,
-      ),
-      negativeImpactPercentage: this.formatPercentage(
-        (negative / totalSdgLinked) * 100,
-      ),
-      totalSdgLinked: totalSdgLinked,
-      totalSdgLinkedPercentage: this.formatPercentage(
-        ((this.selectedSDGs.length > 0
-          ? total
-          : this.initialLinkedDecisionsCount) /
-          this.stats.totalSdgDecisions) *
-          100,
-      ),
-    };
   }
 
   get availableSDGs() {
