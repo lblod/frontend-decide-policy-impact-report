@@ -40,11 +40,12 @@ export default class ReportRoute extends Route {
 
     await this.chartData.loadSdgDataTask.perform();
     await this.chartData.fetchTotalDecisionsCountTask.perform();
-    await this.chartData.fetchLinkedDecisionsCountTask.perform();
     await this.chartData.fetchImpactDataTask.perform();
 
     if (sdgs) {
       this.chartData.setSDGFilter(sdgs.split(','));
+    } else {
+      await this.chartData.refreshImpactStatsTask.perform();
     }
   }
 }
