@@ -54,6 +54,7 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
     getDecisionImpactOverTime(): ChartPoint[];
     filteredSDGData: Array<{ uuid?: string }>;
     governingBodyUri?: string | null;
+    hasData: boolean;
   };
 
   declare chart?: ECharts;

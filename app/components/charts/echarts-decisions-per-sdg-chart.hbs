@@ -42,18 +42,23 @@
     </div>
   </div>
   <div>
-    {{#unless this.loading}}
-      {{! template-lint-disable no-at-ember-render-modifiers }}
-      <div
-        {{did-insert this.renderChart}}
-        {{did-update
-          this.updateChart
-          this.chartData.privateSDGData
-          this.chartData.selectedSDGs
-          this.chartType
-        }}
-        class="chart"
-      ></div>
-    {{/unless}}
+    {{#if this.chartData.hasData}}
+      {{#unless this.loading}}
+        {{! template-lint-disable no-at-ember-render-modifiers }}
+        <div
+          {{did-insert this.renderChart}}
+          {{did-update
+            this.updateChart
+            this.chartData.privateSDGData
+            this.chartData.selectedSDGs
+            this.chartType
+          }}
+          class="chart"
+        ></div>
+      {{/unless}}
+    {{else}}
+      <p class="chart chart-empty au-u-muted au-u-flex au-u-flex--center">No SDG
+        data available</p>
+    {{/if}}
   </div>
 </section>

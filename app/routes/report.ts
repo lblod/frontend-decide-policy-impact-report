@@ -37,6 +37,7 @@ export default class ReportRoute extends Route {
 
     this.localAuthorityData.selectedLocalAuthority = selected;
     this.chartData.governingBodyUri = selected.uri ?? null;
+    this.chartData.resetStats();
 
     await this.chartData.loadSdgDataTask.perform();
     await this.chartData.fetchTotalDecisionsCountTask.perform();

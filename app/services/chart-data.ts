@@ -168,46 +168,94 @@ export default class ChartDataService extends Service {
       name: `${sdgsConceptsArray[index]?.altLabel ?? ''}`,
       notation: sdgsConceptsArray[index]?.notation,
       uuid: sdgsConceptsArray[index]?.id,
+      uri: sdgsConceptsArray[index]?.uri,
     }));
   });
+
+  async parseJson<T>(response: Response, fallback: T): Promise<T> {
+    if (!response.ok) return fallback;
+    try {
+      const text = await response.text();
+      return text ? (JSON.parse(text) as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
 
   fetchImpactDataTask = task(async () => {
     const response = await fetch(
       this.withGoverningBody(`/policy-impact-report/impact-by-sdg`),
     );
-    const data = await response.json();
+    const data = await this.parseJson<ImpactApiRow[]>(response, []);
     this.applyImpactData(data);
   });
+
+  resetStats() {
+    this.stats = {
+      totalDecisions: 0,
+      totalPositiveDecisions: 0,
+      totalNegativeDecisions: 0,
+      positiveImpactPercentage: 0,
+      negativeImpactPercentage: 0,
+      totalSdgLinkedPercentage: 0,
+      totalSdgLinked: 0,
+      totalSdgDecisions: 0,
+    };
+  }
 
   fetchTotalDecisionsCountTask = task(async () => {
     const response = await fetch(
       this.withGoverningBody(`/policy-impact-report/total-decisions`),
     );
-    const data = await response.json();
+    const data = await this.parseJson<{ count?: number }>(response, {});
     this.stats = {
       ...this.stats,
-      totalSdgDecisions: data.count,
+      totalSdgDecisions: data.count ?? 0,
     };
   });
   refreshImpactStatsTask = task(async () => {
-    const [linkedResponse, impactResponse] = await Promise.all([
-      fetch(
-        this.withSelectedSdgs(
-          this.withGoverningBody(
-            `/policy-impact-report/linked-decisions-per-sdg`,
-          ),
-        ),
-      ),
-      fetch(
-        this.withSelectedSdgs(
-          this.withGoverningBody(`/policy-impact-report/decisions-by-impact`),
-        ),
-      ),
-    ]);
-    const linked = await linkedResponse.json();
-    const impact = await impactResponse.json();
+    let linkedCount = 0;
+    let positive = 0;
+    let negative = 0;
 
-    const linkedCount = linked.count ?? 0;
+    const filterActiveButEmpty =
+      this.selectedSDGs.length > 0 && this.selectedSdgUris.length === 0;
+
+    if (!filterActiveButEmpty) {
+      try {
+        const [linkedResponse, impactResponse] = await Promise.all([
+          fetch(
+            this.withSelectedSdgs(
+              this.withGoverningBody(
+                `/policy-impact-report/linked-decisions-per-sdg`,
+              ),
+            ),
+          ),
+          fetch(
+            this.withSelectedSdgs(
+              this.withGoverningBody(
+                `/policy-impact-report/decisions-by-impact`,
+              ),
+            ),
+          ),
+        ]);
+        const linked = await this.parseJson<{ count?: number }>(
+          linkedResponse,
+          {},
+        );
+        const impact = await this.parseJson<{
+          positive?: number;
+          negative?: number;
+        }>(impactResponse, {});
+
+        linkedCount = linked.count ?? 0;
+        positive = impact.positive ?? 0;
+        negative = impact.negative ?? 0;
+      } catch {
+        this.resetStats();
+      }
+    }
+
     const safeLinked = linkedCount || 1;
 
     this.stats = {
@@ -216,13 +264,13 @@ export default class ChartDataService extends Service {
       totalSdgLinkedPercentage: this.formatPercentage(
         (linkedCount / this.stats.totalSdgDecisions) * 100,
       ),
-      totalPositiveDecisions: impact.positive ?? 0,
-      totalNegativeDecisions: impact.negative ?? 0,
+      totalPositiveDecisions: positive,
+      totalNegativeDecisions: negative,
       positiveImpactPercentage: this.formatPercentage(
-        ((impact.positive ?? 0) / safeLinked) * 100,
+        (positive / safeLinked) * 100,
       ),
       negativeImpactPercentage: this.formatPercentage(
-        ((impact.negative ?? 0) / safeLinked) * 100,
+        (negative / safeLinked) * 100,
       ),
     };
   });
@@ -243,7 +291,7 @@ export default class ChartDataService extends Service {
 
       return {
         ...sdg,
-        uri: sdg.uuid ? uriByUuid.get(sdg.uuid) : undefined,
+        uri: sdg.uri ?? (sdg.uuid ? uriByUuid.get(sdg.uuid) : undefined),
         positiveDecisions: impact.positive,
         negativeDecisions: -impact.negative,
         unknownDecisions: impact.unknown,
@@ -281,6 +329,15 @@ export default class ChartDataService extends Service {
     return this.selectedSDGs.length
       ? this.privateSDGData.filter((sdg) => this.selectedSDGs.includes(sdg.id))
       : this.privateSDGData;
+  }
+
+  get hasData() {
+    return this.filteredSDGData.some(
+      (sdg) =>
+        (sdg.positiveDecisions ?? 0) > 0 ||
+        Math.abs(sdg.negativeDecisions ?? 0) > 0 ||
+        (sdg.unknownDecisions ?? 0) > 0,
+    );
   }
 
   setSDGFilter(sdgIds: string[]) {

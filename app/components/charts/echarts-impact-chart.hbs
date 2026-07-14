@@ -1,10 +1,15 @@
-{{! template-lint-disable no-at-ember-render-modifiers }}
-<div
-  {{did-insert this.renderChart}}
-  {{did-update
-    this.updateChart
-    this.chartData.privateSDGData
-    this.chartData.selectedSDGs
-  }}
-  class="chart"
-></div>
+{{#if this.chartData.hasData}}
+  {{! template-lint-disable no-at-ember-render-modifiers }}
+  <div
+    {{did-insert this.renderChart}}
+    {{did-update
+      this.updateChart
+      this.chartData.privateSDGData
+      this.chartData.selectedSDGs
+    }}
+    class="chart"
+  ></div>
+{{else}}
+  <p class="chart chart-empty au-u-muted au-u-flex au-u-flex--center">No SDG
+    data available</p>
+{{/if}}

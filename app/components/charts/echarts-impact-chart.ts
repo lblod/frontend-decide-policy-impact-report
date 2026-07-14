@@ -37,6 +37,7 @@ type ChartDataService = {
   filteredSDGData: SDG[];
   formatPercentage: (value: number) => number;
   governingBodyUri?: string | null;
+  hasData: boolean;
 };
 
 export default class EchartsImpactChart extends Component {
