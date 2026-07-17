@@ -3,6 +3,7 @@ import type ConceptScheme from './concept-scheme.js';
 import type LanguageStringSetTransform from 'frontend-decide-policy-impact-report/transforms/language-string-set.js';
 
 export default class Concept extends Model {
+  @attr('string') uri!: string;
   @attr('string') uuid!: string;
   @attr('language-string-set') prefLabel!: string;
   @attr('language-string-set') definition!: string;

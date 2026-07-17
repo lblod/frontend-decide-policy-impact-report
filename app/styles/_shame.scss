@@ -43,6 +43,12 @@
     height: 400px;
   }
 
+  .chart-empty {
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
+
   .set-chart-type-buttons {
     display: flex;
     justify-content: end;
