@@ -27,6 +27,24 @@ export type ImpactApiRow = {
   count: number;
 };
 
+export type ImpactOverTimeRow = {
+  year: number | null;
+  positive: number;
+  negative: number;
+  unknown: number;
+};
+
+export type ImpactOverTimePoint = {
+  label: string;
+  year?: number;
+  positiveDecisions: number;
+  negativeDecisions: number;
+  unknownDecisions: number;
+};
+
+export const UNKNOWN_YEAR_LABEL = 'Onbekend';
+const OVER_TIME_WINDOW = 5;
+
 export default class ChartDataService extends Service {
   @tracked sdgs: SDG[] = [
     {
@@ -118,6 +136,7 @@ export default class ChartDataService extends Service {
 
   @tracked selectedSDGs: string[] = [];
   @tracked privateSDGData: SDG[] = [];
+  @tracked impactOverTime: ImpactOverTimeRow[] = [];
   @tracked governingBodyUri?: string | null = null;
   @service declare store: Store;
 
@@ -188,6 +207,26 @@ export default class ChartDataService extends Service {
     );
     const data = await this.parseJson<ImpactApiRow[]>(response, []);
     this.applyImpactData(data);
+  });
+
+  fetchImpactOverTimeTask = task(async () => {
+    const filterActiveButEmpty =
+      this.selectedSDGs.length > 0 && this.selectedSdgUris.length === 0;
+
+    if (filterActiveButEmpty) {
+      this.impactOverTime = [];
+      return;
+    }
+
+    const response = await fetch(
+      this.withSelectedSdgs(
+        this.withGoverningBody(`/policy-impact-report/impact-over-time`),
+      ),
+    );
+    this.impactOverTime = await this.parseJson<ImpactOverTimeRow[]>(
+      response,
+      [],
+    );
   });
 
   resetStats() {
@@ -343,38 +382,54 @@ export default class ChartDataService extends Service {
   setSDGFilter(sdgIds: string[]) {
     this.selectedSDGs = sdgIds;
     this.refreshImpactStatsTask.perform();
+    this.fetchImpactOverTimeTask.perform();
   }
 
-  getDecisionImpactOverTime(years: number = 5) {
+  getDecisionImpactOverTime(): ImpactOverTimePoint[] {
+    const rows = this.impactOverTime;
+
+    const yearRows = rows.filter(
+      (row): row is ImpactOverTimeRow & { year: number } => row.year != null,
+    );
+    const byYear = new Map(yearRows.map((row) => [row.year, row]));
+
     const currentYear = new Date().getFullYear();
+    const dataYears = yearRows.map((row) => row.year);
+    const minYear = Math.min(
+      currentYear - (OVER_TIME_WINDOW - 1),
+      ...dataYears,
+    );
+    const maxYear = Math.max(currentYear, ...dataYears);
 
-    const sumDecisions = (sdgs: SDG[]) => ({
-      positiveDecisions: sdgs.reduce(
-        (acc, sdg) => acc + (sdg.positiveDecisions ?? 0),
-        0,
-      ),
-      negativeDecisions: sdgs.reduce(
-        (acc, sdg) => acc + Math.abs(sdg.negativeDecisions ?? 0),
-        0,
-      ),
-      unknownDecisions: sdgs.reduce(
-        (acc, sdg) => acc + (sdg.unknownDecisions ?? 0),
-        0,
-      ),
-    });
+    const result: ImpactOverTimePoint[] = [];
+    for (let year = minYear; year <= maxYear; year++) {
+      const row = byYear.get(year);
+      result.push({
+        label: String(year),
+        year,
+        positiveDecisions: row?.positive ?? 0,
+        negativeDecisions: row?.negative ?? 0,
+        unknownDecisions: row?.unknown ?? 0,
+      });
+    }
 
-    return Array.from({ length: years }, (_, i) => {
-      const year = currentYear - years + i + 1;
+    const unknownRow = rows.find((row) => row.year == null);
+    if (
+      unknownRow &&
+      (unknownRow.positive > 0 ||
+        unknownRow.negative > 0 ||
+        unknownRow.unknown > 0)
+    ) {
+      result.push({
+        label: UNKNOWN_YEAR_LABEL,
+        year: undefined,
+        positiveDecisions: unknownRow.positive,
+        negativeDecisions: unknownRow.negative,
+        unknownDecisions: unknownRow.unknown,
+      });
+    }
 
-      return year === currentYear
-        ? { year, ...sumDecisions(this.filteredSDGData) }
-        : {
-            year,
-            positiveDecisions: 0,
-            negativeDecisions: 0,
-            unknownDecisions: 0,
-          };
-    });
+    return result;
   }
 
   get availableSDGs() {

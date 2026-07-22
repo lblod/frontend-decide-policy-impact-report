@@ -47,6 +47,7 @@ export default class ReportRoute extends Route {
       this.chartData.setSDGFilter(sdgs.split(','));
     } else {
       await this.chartData.refreshImpactStatsTask.perform();
+      await this.chartData.fetchImpactOverTimeTask.perform();
     }
   }
 }
