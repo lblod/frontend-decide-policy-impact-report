@@ -39,6 +39,7 @@ type ChartDataService = {
   filteredSDGData: SDG[];
   formatPercentage: (value: number) => number;
   governingBodyUri?: string | null;
+  hasData: boolean;
   stats: {
     totalSdgLinked: number;
     totalSdgDecisions: number;
@@ -157,6 +158,10 @@ export default class EchartsDecisionsPerSdgChart extends Component {
           type: this.chartType,
           radius: ['30%', '70%'],
           colorBy: 'data',
+          // Prevent echarts from drawing equal-sized slices when every SDG
+          // value is 0 (empty report). Default is true, which renders a full
+          // pie of phantom areas.
+          stillShowZeroSum: false,
 
           data: sdgs.map((sdg) => ({
             name: sdg.name,

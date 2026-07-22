@@ -7,6 +7,7 @@ import type Concept from 'frontend-decide-policy-impact-report/models/concept';
 export type SDG = {
   id: string;
   uuid?: string;
+  uri?: string;
   name?: string;
   color: string;
   rgbaColor: string;
@@ -117,7 +118,6 @@ export default class ChartDataService extends Service {
 
   @tracked selectedSDGs: string[] = [];
   @tracked privateSDGData: SDG[] = [];
-  @tracked initialLinkedDecisionsCount = 0;
   @tracked governingBodyUri?: string | null = null;
   @service declare store: Store;
 
@@ -125,6 +125,23 @@ export default class ChartDataService extends Service {
     if (!this.governingBodyUri) return url;
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}governingBody=${encodeURIComponent(this.governingBodyUri)}`;
+  }
+
+  withSelectedSdgs(url: string): string {
+    const uris = this.selectedSdgUris;
+    if (uris.length === 0) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    const params = uris
+      .map((uri) => `sdg=${encodeURIComponent(uri)}`)
+      .join('&');
+    return `${url}${separator}${params}`;
+  }
+
+  get selectedSdgUris(): string[] {
+    return this.privateSDGData
+      .filter((sdg) => this.selectedSDGs.includes(sdg.id))
+      .map((sdg) => sdg.uri)
+      .filter((uri): uri is string => !!uri);
   }
 
   @tracked stats = {
@@ -151,45 +168,121 @@ export default class ChartDataService extends Service {
       name: `${sdgsConceptsArray[index]?.altLabel ?? ''}`,
       notation: sdgsConceptsArray[index]?.notation,
       uuid: sdgsConceptsArray[index]?.id,
+      uri: sdgsConceptsArray[index]?.uri,
     }));
   });
+
+  async parseJson<T>(response: Response, fallback: T): Promise<T> {
+    if (!response.ok) return fallback;
+    try {
+      const text = await response.text();
+      return text ? (JSON.parse(text) as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
 
   fetchImpactDataTask = task(async () => {
     const response = await fetch(
       this.withGoverningBody(`/policy-impact-report/impact-by-sdg`),
     );
-    const data = await response.json();
+    const data = await this.parseJson<ImpactApiRow[]>(response, []);
     this.applyImpactData(data);
   });
+
+  resetStats() {
+    this.stats = {
+      totalDecisions: 0,
+      totalPositiveDecisions: 0,
+      totalNegativeDecisions: 0,
+      positiveImpactPercentage: 0,
+      negativeImpactPercentage: 0,
+      totalSdgLinkedPercentage: 0,
+      totalSdgLinked: 0,
+      totalSdgDecisions: 0,
+    };
+  }
 
   fetchTotalDecisionsCountTask = task(async () => {
     const response = await fetch(
       this.withGoverningBody(`/policy-impact-report/total-decisions`),
     );
-    const data = await response.json();
+    const data = await this.parseJson<{ count?: number }>(response, {});
     this.stats = {
       ...this.stats,
-      totalSdgDecisions: data.count,
+      totalSdgDecisions: data.count ?? 0,
     };
   });
+  refreshImpactStatsTask = task(async () => {
+    let linkedCount = 0;
+    let positive = 0;
+    let negative = 0;
 
-  fetchLinkedDecisionsCountTask = task(async () => {
-    const response = await fetch(
-      this.withGoverningBody(`/policy-impact-report/linked-decisions-per-sdg`),
-    );
-    const data = await response.json();
-    this.initialLinkedDecisionsCount = data.count;
+    const filterActiveButEmpty =
+      this.selectedSDGs.length > 0 && this.selectedSdgUris.length === 0;
+
+    if (!filterActiveButEmpty) {
+      try {
+        const [linkedResponse, impactResponse] = await Promise.all([
+          fetch(
+            this.withSelectedSdgs(
+              this.withGoverningBody(
+                `/policy-impact-report/linked-decisions-per-sdg`,
+              ),
+            ),
+          ),
+          fetch(
+            this.withSelectedSdgs(
+              this.withGoverningBody(
+                `/policy-impact-report/decisions-by-impact`,
+              ),
+            ),
+          ),
+        ]);
+        const linked = await this.parseJson<{ count?: number }>(
+          linkedResponse,
+          {},
+        );
+        const impact = await this.parseJson<{
+          positive?: number;
+          negative?: number;
+        }>(impactResponse, {});
+
+        linkedCount = linked.count ?? 0;
+        positive = impact.positive ?? 0;
+        negative = impact.negative ?? 0;
+      } catch {
+        this.resetStats();
+      }
+    }
+
+    const safeLinked = linkedCount || 1;
+
     this.stats = {
       ...this.stats,
-      totalSdgLinked: data.count,
+      totalSdgLinked: linkedCount,
       totalSdgLinkedPercentage: this.formatPercentage(
-        (data.count / this.stats.totalSdgDecisions) * 100,
+        (linkedCount / this.stats.totalSdgDecisions) * 100,
+      ),
+      totalPositiveDecisions: positive,
+      totalNegativeDecisions: negative,
+      positiveImpactPercentage: this.formatPercentage(
+        (positive / safeLinked) * 100,
+      ),
+      negativeImpactPercentage: this.formatPercentage(
+        (negative / safeLinked) * 100,
       ),
     };
   });
 
   applyImpactData(data: ImpactApiRow[]) {
     const map = this.transformImpactData(data);
+
+    const uriByUuid = new Map<string, string>();
+    for (const row of data) {
+      const uuid = this.extractUuid(row.sdg);
+      if (uuid && !uriByUuid.has(uuid)) uriByUuid.set(uuid, row.sdg);
+    }
 
     this.privateSDGData = this.sdgs.map((sdg) => {
       const impact = sdg.uuid
@@ -198,13 +291,12 @@ export default class ChartDataService extends Service {
 
       return {
         ...sdg,
+        uri: sdg.uri ?? (sdg.uuid ? uriByUuid.get(sdg.uuid) : undefined),
         positiveDecisions: impact.positive,
         negativeDecisions: -impact.negative,
         unknownDecisions: impact.unknown,
       };
     });
-
-    this.getImpactStats();
   }
 
   transformImpactData(data: ImpactApiRow[]) {
@@ -239,9 +331,18 @@ export default class ChartDataService extends Service {
       : this.privateSDGData;
   }
 
+  get hasData() {
+    return this.filteredSDGData.some(
+      (sdg) =>
+        (sdg.positiveDecisions ?? 0) > 0 ||
+        Math.abs(sdg.negativeDecisions ?? 0) > 0 ||
+        (sdg.unknownDecisions ?? 0) > 0,
+    );
+  }
+
   setSDGFilter(sdgIds: string[]) {
     this.selectedSDGs = sdgIds;
-    this.getImpactStats();
+    this.refreshImpactStatsTask.perform();
   }
 
   getDecisionImpactOverTime(years: number = 5) {
@@ -274,46 +375,6 @@ export default class ChartDataService extends Service {
             unknownDecisions: 0,
           };
     });
-  }
-
-  getImpactStats() {
-    const { positive, negative, total } = this.filteredSDGData.reduce(
-      (acc, sdg) => {
-        const pos = sdg.positiveDecisions ?? 0;
-        const neg = Math.abs(sdg.negativeDecisions ?? 0);
-        const unknown = sdg.unknownDecisions ?? 0;
-        acc.positive += pos;
-        acc.negative += neg;
-        acc.total += pos + neg + unknown;
-
-        return acc;
-      },
-      { positive: 0, negative: 0, total: 0 },
-    );
-    const totalSdgLinked =
-      this.selectedSDGs.length > 0
-        ? total
-        : this.initialLinkedDecisionsCount || 1;
-    this.stats = {
-      ...this.stats,
-      totalDecisions: total,
-      totalPositiveDecisions: positive,
-      totalNegativeDecisions: negative,
-      positiveImpactPercentage: this.formatPercentage(
-        (positive / totalSdgLinked) * 100,
-      ),
-      negativeImpactPercentage: this.formatPercentage(
-        (negative / totalSdgLinked) * 100,
-      ),
-      totalSdgLinked: totalSdgLinked,
-      totalSdgLinkedPercentage: this.formatPercentage(
-        ((this.selectedSDGs.length > 0
-          ? total
-          : this.initialLinkedDecisionsCount) /
-          this.stats.totalSdgDecisions) *
-          100,
-      ),
-    };
   }
 
   get availableSDGs() {
