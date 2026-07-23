@@ -42,7 +42,7 @@ export type ImpactOverTimePoint = {
   unknownDecisions: number;
 };
 
-export const UNKNOWN_YEAR_LABEL = 'Onbekend';
+export const UNKNOWN_YEAR_LABEL = 'Unknown';
 const OVER_TIME_WINDOW = 5;
 
 export default class ChartDataService extends Service {
