@@ -43,7 +43,8 @@ type LineType = {
 };
 
 type ChartPoint = {
-  year: number;
+  label: string;
+  year?: number;
   positiveDecisions: number;
   negativeDecisions: number;
   unknownDecisions: number;
@@ -53,6 +54,7 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
   @service declare chartData: {
     getDecisionImpactOverTime(): ChartPoint[];
     filteredSDGData: Array<{ uuid?: string }>;
+    impactOverTime: unknown[];
     governingBodyUri?: string | null;
     hasData: boolean;
   };
@@ -193,8 +195,9 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
         extraCssText: 'pointer-events: auto!important',
         formatter: (params: any) => {
           const { name, value, seriesName } = params;
+          const isYear = /^\d{4}$/.test(name);
           const hvtUrl = buildHvtUrl({
-            year: name,
+            year: isYear ? name : undefined,
             concepts: selectedConcepts || undefined,
             impact: this.impactKeyFromSeriesName(seriesName),
             municipality: this.chartData.governingBodyUri,
@@ -220,7 +223,7 @@ export default class EchartsDecisionsImpactOverTimeChart extends Component {
       xAxis: {
         type: 'category',
         boundaryGap: false,
-        data: data.map((d) => d.year),
+        data: data.map((d) => d.label),
       },
       yAxis: {
         type: 'value',
