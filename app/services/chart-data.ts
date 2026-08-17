@@ -175,7 +175,7 @@ export default class ChartDataService extends Service {
   };
 
   loadSdgDataTask = task(async () => {
-    const schemeId = 'http://data.lblod.gift/id/conceptscheme/sdg-simple';
+    const schemeId = 'http://lblod.data.gift/id/conceptscheme/sdg-simple';
 
     const sdgsConceptsArray = (await this.store.query('concept', {
       'filter[concept-scheme][:uri:]': schemeId,
